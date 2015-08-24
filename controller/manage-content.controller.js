@@ -1,5 +1,6 @@
 var mysql = require('../config/db').pool;
 
+//Fetching all types and content details :
 exports.getTypes = function (req, res, next) {
    try {
     var parentTypes;
@@ -28,15 +29,39 @@ exports.getTypes = function (req, res, next) {
                                     res.status(500).json(err.message);
                                   }else{
                                     contentTypes = result;
-                                    connection_ikon_cms.release();
-                                    res.send({parentType:parentTypes,deliveryType:deliveryTypes,contentType:contentTypes});
-                                  } 
-                               });
+                                    // connection_ikon_cms.release();
+                                    
+                                    if(req.body.ID != undefined){
+                                         var query = connection_ikon_cms.query("SELECT mct_id,mct_cnt_type_id as child_id,mct_parent_cnt_type_id as parent_id ,(SELECT cd.cd_name FROM `catalogue_detail` cd where cd.cd_id = m.mct_parent_cnt_type_id) as parent_name, (SELECT cd.cd_name FROM `catalogue_detail` cd where cd.cd_id = m.mct_cnt_type_id ) as child_name from `icn_manage_content_type` as m where m.mct_id=?",[req.body.ID], function (err, result) {
+                                          if(!err){
+                                            if(result.length > 0){
+                                                  //query to fetch delivery types for that content type:
+                                                   var query = connection_ikon_cms.query("SELECT Group_concat(ms.cmd_entity_detail) as delivery_types FROM `multiselect_metadata_detail` ms, `icn_manage_content_type`  m where m.mct_delivery_type_id = ms.cmd_group_id and  m.mct_cnt_type_id = ms.cmd_entity_type and m.mct_id=?",[req.body.ID], function (err, res_delivery_type) {
+                                                        if(err){
+                                                          connection_ikon_cms.release();
+                                                          res.status(500).json(err.message);
+                                                        }else{
+                                                           connection_ikon_cms.release();
+                                                           res.send({parentType:parentTypes,deliveryType:deliveryTypes,contentType:contentTypes,c:result,d:res_delivery_type});
+                                                        }
+                                                   });
+                                            }
+                                          }else{
+                                               connection_ikon_cms.release();
+                                               res.render('account-login', { error: 'Error in database connection.' });
+                                          }
+                                      }); //query
+                                    }else{
+                                      connection_ikon_cms.release();
+                                      res.send({parentType:parentTypes,deliveryType:deliveryTypes,contentType:contentTypes});
+                                    } 
                             }
                           });
                         }
-                    });
+                    }); //query
+                }
               });
+             });
             }else{
               res.redirect('/accountlogin');
             }
@@ -44,48 +69,11 @@ exports.getTypes = function (req, res, next) {
             res.redirect('/accountlogin');
           }
         }catch (error) {
-        connection_ikon_cms.release();
-        res.status(500).json(error.message);
+          connection_ikon_cms.release();
+          res.status(500).json(error.message);
     }
 } // getTypes function.
 
-
-
-exports.getContentDetails = function(req,res,next){
-      try {
-        if (req.session) {
-            if (req.session.UserName) {
-              mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-                console.log(req.query.cid);
-                    //query to get content type details:
-                    var query = connection_ikon_cms.query("SELECT mct_id,mct_cnt_type_id as child_id,mct_parent_cnt_type_id as parent_id ,(SELECT cd.cd_name FROM `catalogue_detail` cd where cd.cd_id = m.mct_parent_cnt_type_id) as parent_name, (SELECT cd.cd_name FROM `catalogue_detail` cd where cd.cd_id = m.mct_cnt_type_id ) as child_name from `icn_manage_content_type` as m where m.mct_id=?",[req.query.cid], function (err, result) {
-                    if(!err){
-                      if(result.length > 0){
-                            //query to fetch delivery types for that content type:
-                             var query = connection_ikon_cms.query("SELECT Group_concat(ms.cmd_entity_detail) as delivery_types FROM `multiselect_metadata_detail` ms, `icn_manage_content_type`  m where m.mct_delivery_type_id = ms.cmd_group_id and  m.mct_cnt_type_id = ms.cmd_entity_type and m.mct_id=?",[req.query.cid], function (err, res_delivery_type) {
-                                  if(err){
-                                    connection_ikon_cms.release();
-                                    res.status(500).json(err.message);
-                                  }else{
-                                     connection_ikon_cms.release();
-                                     res.send({c:result,d:res_delivery_type});
-                                  }
-                             });
-
-                      }
-                    }else{
-                         connection_ikon_cms.release();
-                         res.render('account-login', { error: 'Error in database connection.' });
-                    }
-                  
-                  });
-          });
-        }
-      }
-}catch(error){
-       res.status(500).json(error);
-  }
-}
 
 
 exports.addContentType = function (req, res, next) {
@@ -205,9 +193,6 @@ exports.addContentType = function (req, res, next) {
         console.log("ERROR");
   }
 }
-
-
-
 
 
 exports.updateContentType = function (req, res, next) {

@@ -1,4 +1,4 @@
-myApp.controller('manageContentCtrl', function ($scope, $http, ngProgress, $stateParams, ContentTypes) {
+myApp.controller('manageContentCtrl', function ($scope, $http, ngProgress, $stateParams,_, ContentTypes) {
     ngProgress.color('yellowgreen');
     ngProgress.height('3px');
     $scope.SelectedParentContentType = "";
@@ -6,33 +6,22 @@ myApp.controller('manageContentCtrl', function ($scope, $http, ngProgress, $stat
     $scope.isReadOnly = "no";
 
 //Get All the content Types : Parent, Delivery , Content
-    ContentTypes.GetTypes(function(data){
+
+    ContentTypes.GetTypes({'ID':$stateParams.id}, function(data){
         $scope.ParentContentType = data.parentType;
         $scope.AudioVideoDeliveryType = data.deliveryType;
         $scope.ContentType = data.contentType;
+        if($stateParams.id){
+             $scope.isReadOnly = "yes";
+             $scope.DeliveryType =  $scope.AudioVideoDeliveryType;
+             $scope.NewContentType = data.c[0].child_name;
+             $scope.SelectedParentContentType = data.c[0].parent_id;
+             var delivery_type_arr =  data.d[0].delivery_types.split(",");           
+              _.each(delivery_type_arr, function (el) {
+                    $scope.SelectedDeliveryType.push(parseInt(el));
+              });
+        }
     });
-
-//If Id is there in the url for the edit page : 
-    if ($stateParams.id) {
-        $scope.isReadOnly = "yes";
-        //Fetching details of a particular content type based on id : 
-        ContentTypes.GetContentDetails($stateParams.id,function(data){
-            $scope.NewContentType = data.c[0].child_name;
-            $scope.SelectedParentContentType = data.c[0].parent_id;
-            ContentTypes.GetTypes(function(data){
-                $scope.AudioVideoDeliveryType = data.deliveryType;
-                $scope.DeliveryType =  $scope.AudioVideoDeliveryType;
-            });
-             var delivery_type_arr =  data.d[0].delivery_types.split(",");
-             for(i =0 ; i < delivery_type_arr.length; i++){
-                $scope.SelectedDeliveryType.push(parseInt(delivery_type_arr[i]));   
-             }             
-        });
-    }
-
-
-
-
 
 //Content Type Change ..
     $scope.SelectParentContentTypeChange = function () {
@@ -49,9 +38,6 @@ myApp.controller('manageContentCtrl', function ($scope, $http, ngProgress, $stat
     $('.removeActiveClass').removeClass('active');
     $('#manage-content').addClass('active');
 
-
-
-
     $scope.submitForm = function (isValid) {
         $scope.successvisible = false;
         $scope.errorvisible = false;
@@ -63,7 +49,6 @@ myApp.controller('manageContentCtrl', function ($scope, $http, ngProgress, $stat
                     new_name : $scope.NewContentType,
                     mct_id : $stateParams.id
                 }
-
                 ContentTypes.UpdateContentType(datas,function(data){
                         if(data.success){
                             $scope.success = data.message;
@@ -71,9 +56,6 @@ myApp.controller('manageContentCtrl', function ($scope, $http, ngProgress, $stat
                         }
                         location.href = "/#/manage-content";
                 });
-                
-
-
             }
             else {
                 //For new : 
@@ -95,7 +77,6 @@ myApp.controller('manageContentCtrl', function ($scope, $http, ngProgress, $stat
                  });
             }
             ngProgress.complete();
-
         }
     };
 });

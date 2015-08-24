@@ -1,4 +1,3 @@
-
 var mysql = require('../config/db').pool;
 var nodemailer = require('nodemailer');
 
