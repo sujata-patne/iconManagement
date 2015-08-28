@@ -1,6 +1,4 @@
-/**
-* Created by sujata.patne on 14-07-2015.
-*/
+ 
 myApp.service('Countrys', ['$http', function ($http) {
     var service = {};
     service.baseRestUrl = 'http://localhost:3000';

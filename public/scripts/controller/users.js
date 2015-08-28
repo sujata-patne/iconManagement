@@ -1,7 +1,4 @@
-
-/**
-* Created by sujata.patne on 13-07-2015.
-*/
+ 
 var site_base_path = '';
 //var site_base_path = 'http://dailymagic.in';
 myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $timeout, Users, $state) {
@@ -33,12 +30,6 @@ myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $timeout, Use
 
     ngProgress.color('yellowgreen');
     ngProgress.height('3px');
-
-    //Users.getUsers(function (users) {
-    //    $scope.UserList = angular.copy(users.UserData);
-    //    $scope.UserRole = angular.copy(users.UserRole);
-    //});
-
 
     $scope.addEditUsers = function (id) {
         $scope.error = "";

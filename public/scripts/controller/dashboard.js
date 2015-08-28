@@ -1,6 +1,4 @@
-/**
- * Created by sujata.patne on 7/7/2015.
- */
+ 
 var site_base_path = '';
 //var site_base_path = 'http://dailymagic.in';
 myApp.controller('dashboardCtrl', function ($scope, $http, ngProgress) {

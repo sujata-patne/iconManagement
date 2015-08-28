@@ -1,28 +1,22 @@
 myApp.service('ContentTypes', ['$http', function ($http) {
     var service = {};
-	service.baseRestUrl = 'http://localhost:3000';
-	
-    /* Retrieving Parent Content Type  e.g. Video, Audio etc.*/
+    service.baseRestUrl = 'http://localhost:3000';
 
-    service.GetTypes = function(data,success){
-            $http.post(service.baseRestUrl + '/getTypes',data).success(function (items) {
-                success(items);
-            });
-    }
-
-    /* Update content type details */
-    service.UpdateContentType = function(data,success){
-        $http.post(service.baseRestUrl + '/updateContentType',data).success(function (items) {
+    service.getManageContentType = function (data, success, error) {
+        $http.post(service.baseRestUrl + '/getmanagecontent', data).success(function (items) {
             success(items);
+        }).error(function (err) {
+            error(err);
         });
     }
 
-    /* Adding */
-    service.AddNewContentType = function(data,success){
-        $http.post(service.baseRestUrl + '/addContentType',data).success(function (items) {
+    service.AddEditContentType = function (data, success, error) {
+        $http.post(service.baseRestUrl + '/addeditcontenttype', data).success(function (items) {
             success(items);
+        }).error(function (err) {
+            error(err);
         });
     }
-
+     
     return service;
-}]);
+} ]);

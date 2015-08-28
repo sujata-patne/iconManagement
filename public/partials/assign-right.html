@@ -2,7 +2,7 @@
     <div class="content">
         <div class="content-container">
             <div class="content-header">
-                <h2 class="content-header-title">Value Pack Plan</h2>
+                <h2 class="content-header-title">Assign Rights</h2>
             </div>
             <!-- /.content-header -->
             <form class="form-horizontal" role="form" name="valuePackForm" data-ng-submit="submitForm(valuePackForm.$valid)" novalidate>
@@ -30,7 +30,7 @@
                             <label for="selectgeolocation" class="col-sm-3 control-label"><span class="asterisk">*</span>Select Geo Location</label>
                             <div class="col-sm-9">
                                 <span class="ui-select">
-                                    <select name="selectgeolocation" class="form-control" multiple data-ng-model="SelectedGeoLocation" data-ng-options="item.cty_id as item.cty_name for item in Countrys" data-ng-change="SelectGeolocationChange()" required>
+                                    <select name="selectgeolocation" class="form-control" multiple data-ng-model="SelectedGeoLocation" data-ng-options="item.cd_id as item.cd_name for item in Countrys" data-ng-change="SelectGeolocationChange()" required>
                                         <!--<option value="">-- Select Geo Location --</option>-->
                                     </select>
                                     <span style="color: red" ng-show="valuePackForm.$submitted || valuePackForm.selectgeolocation.$dirty">

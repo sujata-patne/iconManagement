@@ -1,7 +1,4 @@
-
-/**
- * Created by sujata.patne on 7/7/2015.
- */
+ 
 var index = require('../controller/index.controller');
 
 module.exports = function (app) {

@@ -1,5 +1,32 @@
+
 var mysql = require('../config/db').pool;
 var nodemailer = require('nodemailer');
+
+function getDate(val) {
+    var d = new Date(val);
+    var dt = d.getDate();
+    var month = d.getMonth() + 1;
+    var year = d.getFullYear();
+    var selectdate = Pad("0", month, 2) + '/' + Pad("0", dt, 2) + '/' + year;
+    return selectdate;
+}
+
+function getTime(val) {
+    var d = new Date(val);
+    var minite = d.getMinutes();
+    var hour = d.getHours();
+    var second = d.getSeconds();
+    var selectdate = Pad("0", hour, 2) + ':' + Pad("0", minite, 2) + ':' + Pad("0", second, 2);
+    return selectdate;
+}
+function Pad(padString, value, length) {
+    var str = value.toString();
+    while (str.length < length)
+        str = padString + str;
+
+    return str;
+}
+
 
 exports.pages = function (req, res, next) {
     var role;
@@ -14,7 +41,7 @@ exports.pages = function (req, res, next) {
         if (req.session.UserName) {
             role = req.session.UserRole;
             var pageData = getPages(role);
-            res.render('index', { title: 'Express', username: req.session.UserName, Pages: pageData, userrole: req.session.UserRole });
+            res.render('index', { title: 'Express', username: req.session.FullName, Pages: pageData, userrole: req.session.UserType, lastlogin: " " + getDate(req.session.lastlogin) + " " + getTime(req.session.lastlogin) });
         }
         else {
             res.redirect('/accountlogin');
@@ -69,13 +96,28 @@ exports.authenticate = function (req, res, next) {
                 } else {
                     if (row.length > 0) {
                         if (row[0].ld_active == 1) {
-                            var session = req.session;
-                            session.UserId = row[0].ld_id;
-                            session.UserRole = row[0].ld_role;
-                            session.UserName = req.body.username;
-                            session.Password = req.body.password;
-                            connection_central.release();
-                            res.redirect('/');
+                            if (row[0].ld_user_type == "Store Admin") {
+                                var session = req.session;
+                                session.UserId = row[0].ld_id;
+                                session.UserRole = row[0].ld_role;
+                                session.UserName = req.body.username;
+                                session.Password = req.body.password;
+                                session.FullName = row[0].ld_display_name;
+                                session.lastlogin = row[0].ld_last_login;
+                                session.UserType = row[0].ld_user_type;
+                                var query = connection_central.query('update  icn_login_detail set  ld_last_login = ? where ld_id =?', [new Date(), row[0].ld_id], function (err, row, fields) {
+                                    if (err) {
+                                        res.render('account-login', { error: 'Error in database connection.' });
+                                    } else {
+                                        connection_central.release();
+                                        res.redirect('/');
+                                    }
+                                });
+                            }
+                            else {
+                                connection_central.release();
+                                res.render('account-login', { error: "You can't access this Site." });
+                            }
                         }
                         else {
                             connection_central.release();
@@ -96,17 +138,15 @@ exports.authenticate = function (req, res, next) {
 
 function getPages(role) {
 
-    if (role == "Super Admin") {
-        var pagesjson = [
-        { 'pagename': 'Add Store', 'href': 'add-store', 'id': 'store', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
+    var pagesjson = [
+        { 'pagename': 'Manage Store', 'href': 'add-store', 'id': 'store', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
         { 'pagename': 'Assign Rights', 'href': 'assign-right', 'id': 'assign-right', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
         { 'pagename': 'Manage Content', 'href': 'manage-content', 'id': 'manage-content', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
         { 'pagename': 'Manage Country List', 'href': 'manage-country-list', 'id': 'manage-country-list', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
         { 'pagename': 'Change Password', 'href': 'changepassword', 'id': 'changepassword', 'class': 'fa fa-align-left', 'submenuflag': '0', 'sub': [] }
         ];
 
-        return pagesjson;
-    }
+    return pagesjson;
 }
 
 exports.viewForgotPassword = function (req, res, next) {

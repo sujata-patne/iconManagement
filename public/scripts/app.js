@@ -22,7 +22,7 @@ myApp.config(function ($stateProvider) {
             url: '/add-store'
         })
          .state('edit-store', {
-             templateUrl: 'partials/edit-store.html',
+             templateUrl: 'partials/add-store.html',
              controller: 'storeCtrl',
              url: '/edit-store/:id'
          })
@@ -42,7 +42,7 @@ myApp.config(function ($stateProvider) {
             url: '/manage-content'
         })
          .state('edit-content', {
-             templateUrl: 'partials/edit-manage-content.html',
+             templateUrl: 'partials/manage-content.html',
              controller: 'manageContentCtrl',
              url: '/edit-content/:id'
          })

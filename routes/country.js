@@ -1,6 +1,4 @@
-/**
-* Created by sujata.patne on 15-07-2015.
-*/
+ 
 var country = require('../controller/country.controller');
 
 module.exports = function (app) {

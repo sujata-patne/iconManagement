@@ -1,21 +1,4 @@
-/**
-* Created by sujata.patne on 15-07-2015.
-*/
-
-myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngProgress, Stores, _,$window) {
-    //var json = { Stores: [{ td_store_Id: 1, td_store_name: "Wakau", td_contact_person: "Wakau", td_user_id: "abc@gmail.com", td_mobile_no: "9898983030", td_site_url: "wakau.in", store: [1, 3] },
-    //            { td_store_Id: 2, td_store_name: "Daily Magic", td_contact_person: "Daily Magic", td_user_id: "plan@gmail.com", td_mobile_no: "9895675466", td_site_url: "dailymagic.in", store: [4, 3] },
-    //            { td_store_Id: 3, td_store_name: "Store 1", td_contact_person: "Store 1", td_user_id: "creation@gmail.com", td_mobile_no: "9786556765", td_site_url: "store1.in", store: [2, 3]}],
-    //    Channels: [{ cd_id: 1, cd_name: "All" },
-    //            { cd_id: 2, cd_name: "Online[Web]" },
-    //            { cd_id: 3, cd_name: "Mobile" },
-    //            { cd_id: 4, cd_name: "IP TV" },
-    //            { cd_id: 5, cd_name: "Kiosk"}]
-    //};
-
-    //$scope.Stores = amplify.store("Stores") ? amplify.store("Stores") : json.Stores;
-    //amplify.store("Stores", $scope.Stores);
-    //$scope.Channels = json.Channels;
+myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngProgress, Stores, _, $window) {
 
     $('.removeActiveClass').removeClass('active');
     $('#store').addClass('active');
@@ -26,8 +9,8 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
     $scope.CurrentPage = $state.current.name;
     ngProgress.color('yellowgreen');
     ngProgress.height('3px');
-    $scope.resetvisible = $stateParams.id ? false : true;
-
+    $scope.IsAddStore = $state.current.name == "edit-store" ? false : true;
+    $scope.PageTitle = $state.current.name == "edit-store" ? "Edit " : "Add ";
     $scope.channel = [];
     $scope.OldStore = [];
     $scope.cmd_entity_type = 0;
@@ -38,31 +21,31 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
             $scope.Channels = store.Channels;
             $scope.cmd_entity_type = store.Channels[0].cm_id;
         }
-        $scope.SelectStores = [];
+        $scope.SelectStoreChannels = [];
         $scope.Stores = store.StoreList;
 
         if ($scope.CurrentPage == "edit-store") {
-            $scope.OldStore = store.ChannelRights;
-
-            _.each($scope.OldStore, function (channal) {
-                $scope.SelectStores.push(channal.cmd_entity_detail);
+            $scope.OldStoreChannels = store.ChannelRights;
+            _.each($scope.OldStoreChannels, function (channel) {
+                $scope.SelectStoreChannels.push(channel.cmd_entity_detail);
             });
-
             $scope.Stores.forEach(function (store) {
                 $scope.StoreName = store.st_name;
                 $scope.StoreURL = store.st_url;
                 $scope.StoreId = store.st_id;
+                $scope.ld_id = store.ld_id;
+                $scope.Email = store.ld_email_id;
+                $scope.ContactPerson = store.ld_display_name;
+                $scope.MobileNo = store.ld_mobile_no;
                 $scope.StoreFrontType = store.st_front_type;
             });
-
         }
-
     }, function (error) {
         $scope.error = error;
         $scope.errorvisible = true;
     });
 
-    function GetDeleteStore(OldStore, SelectedStore) {
+    function GetDeleteStoreChannels(OldStore, SelectedStore) {
         var DeleteArray = [];
         _.each(OldStore, function (oldstore) {
             data = _.find(SelectedStore, function (selected, key) { return selected == oldstore.cmd_entity_detail; });
@@ -86,53 +69,65 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
 
 
     $scope.resetForm = function () {
-        $scope.SelectedEventId = '';
-        $scope.OperatorsList = '';
+        $scope.successvisible = false;
+        $scope.errorvisible = false;
     }
 
     $scope.submitForm = function (isValid) {
         $scope.successvisible = false;
         $scope.errorvisible = false;
         if (isValid) {
-            ngProgress.start();
-            var store = {
-                state: $scope.CurrentPage,
-                storeId: $scope.StoreId,
-                store_name: $scope.StoreName,
-                td_site_url: $scope.StoreURL,
-                store_cmd_entity_type: $scope.cmd_entity_type,
-                store: $scope.SelectStores,
-                store_front_type: $scope.StoreFrontType,
-                AddStore: GetAddStore($scope.OldStore, $scope.SelectStores),
-                DeleteStore: GetDeleteStore($scope.OldStore, $scope.SelectStores)
-            };
-            ngProgress.start();
-            Stores.AddEditStore(store, function (data) {
-
-                if (data.success) {
-                    if ($scope.CurrentPage == "edit-store") {
-                       $window.location.href = "#add-store";
+            if (parseInt($scope.MobileNo).toString().length == 10) {
+                ngProgress.start();
+                var store = {
+                    state: $scope.CurrentPage,
+                    store_id: $scope.StoreId,
+                    store_name: $scope.StoreName,
+                    store_site_url: $scope.StoreURL,
+                    store_ld_id: $scope.ld_id,
+                    store_email: $scope.Email,
+                    store_contact_person: $scope.ContactPerson,
+                    store_user_no: $scope.MobileNo,
+                    store_cmd_entity_type: $scope.cmd_entity_type,
+                    store: $scope.SelectStoreChannels,
+                    store_front_type: $scope.StoreFrontType,
+                    AddStoreChannels: GetAddStore($scope.OldStoreChannels, $scope.SelectStoreChannels),
+                    DeleteStoreChannels: GetDeleteStoreChannels($scope.OldStoreChannels, $scope.SelectStoreChannels)
+                };
+                Stores.AddEditStore(store, function (data) {
+                    if (data.success) {
+                        if ($scope.CurrentPage == "edit-store") {
+                            $window.location.href = "#add-store";
+                        }
+                        else {
+                            $scope.StoreName = '';
+                            $scope.StoreURL = '';
+                            $scope.Email = '';
+                            $scope.ContactPerson = '';
+                            $scope.MobileNo = '';
+                            $scope.SelectStoreChannels = [];
+                            $scope.storeForm.$setPristine();
+                            $scope.Stores.push(data.StoreList[0]);
+                        }
+                        $scope.success = data.message;
+                        $scope.successvisible = true;
                     }
                     else {
-                        $scope.StoreName = '';
-                        $scope.StoreURL = '';
-                        $scope.SelectStores = [];
-                        $scope.storeForm.$setPristine();
-                        $scope.Stores.push(data.StoreList[0]);
+                        $scope.error = data.message;
+                        $scope.errorvisible = true;
                     }
-                    $scope.success = data.message;
-                    $scope.successvisible = true;
+                    ngProgress.complete();
                 }
-                else {
-                    $scope.error = data.message;
+                , function (error) {
+                    $scope.error = error;
                     $scope.errorvisible = true;
-                }
-                ngProgress.complete();
+                    ngProgress.complete();
+                });
             }
-            , function (error) {
-                $scope.error = error;
+            else {
+                $scope.error = "Invalid Mobile No.";
                 $scope.errorvisible = true;
-            });
+            }
         }
     };
 });

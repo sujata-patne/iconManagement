@@ -1,6 +1,4 @@
-/**
-* Created by sujata.patne on 17-07-2015.
-*/
+ 
 
 var assignright = require('../controller/assign-right.controller');
 module.exports = function (app) {
