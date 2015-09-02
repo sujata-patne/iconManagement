@@ -1,7 +1,7 @@
  
 myApp.service('Stores', ['$http', function ($http) {
     var service = {};
-    service.baseRestUrl = 'http://localhost:3000';
+    service.baseRestUrl = '';
     service.getStores = function (data, success, error) {
         $http.post(service.baseRestUrl + '/getstore', data).success(function (items) {
             success(items);

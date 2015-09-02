@@ -1,7 +1,7 @@
  
 myApp.service('AssignRights', ['$http', function ($http) {
     var service = {};
-    service.baseRestUrl = 'http://localhost:3000';
+    service.baseRestUrl = '';
 
     service.GetAssignRights = function (data, success, error) {
         $http.post(service.baseRestUrl + '/getassignright', data).success(function (items) {

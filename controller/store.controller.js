@@ -77,25 +77,56 @@ exports.AddEditStore = function (req, res, next) {
         if (req.session) {
             if (req.session.UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-                    var query = connection_ikon_cms.query('select * from icn_login_detail where lower(ld_user_name) = ?', [req.body.store_email.toLowerCase()], function (err, result) {
-                        if (err) {
-                            connection_ikon_cms.release();
-                            res.status(500).json(err.message);
-                        }
-                        else {
-                            if (result.length > 0) {
-                                if (result[0].ld_id == req.body.store_ld_id && req.body.state == "edit-store") {
-                                    StoreCrud();
-                                }
-                                else {
-                                    res.send({ success: false, message: 'UserId Must be Unique' });
-                                }
-                            }
-                            else {
-                                StoreCrud();
-                            }
-                        }
+                                          var query = connection_ikon_cms.query('select * from icn_login_detail where lower(ld_user_name) = ?', [req.body.store_email.toLowerCase()], function (err, result) {
+                                            if (err) {
+                                                connection_ikon_cms.release();
+                                                res.status(500).json(err.message);
+                                            }
+                                            else {
+                                                        if (result.length > 0) {
+                                                            if (result[0].ld_id == req.body.store_ld_id && req.body.state == "edit-store") {
+                                                                  //Site url must be unique check :
+                                                                  var query = connection_ikon_cms.query('select * from icn_store where lower(st_url) = ? AND st_id != ?', [req.body.store_site_url.toLowerCase(),req.body.store_id], function (err, result) {
+                                                                  if(err){
+                                                                            connection_ikon_cms.release();
+                                                                            res.status(500).json(err.message);
+                                                                    }
+                                                                    if(result.length > 0){
+                                                                        connection_ikon_cms.release();
+                                                                        res.send({ success: false, message: 'Site Url Must be Unique' });
+                                                                    }else{
+
+                                                                            StoreCrud();
+                                                                    }
+                                                                });
+                                                            }
+                                                            else {
+                                                                connection_ikon_cms.release();
+                                                                res.send({ success: false, message: 'User Id Must be Unique' });
+                                                            }
+                                                        }
+                                                        else {
+                                                            //Site url must be unique :
+                                                            var query = connection_ikon_cms.query('select * from icn_store where lower(st_url) = ?', [req.body.store_site_url.toLowerCase()], function (err, result) {
+                                                                    if(err){
+                                                                            connection_ikon_cms.release();
+                                                                            res.status(500).json(err.message);
+                                                                    }
+                                                                    if(result.length > 0){
+                                                                        connection_ikon_cms.release();
+                                                                        res.send({ success: false, message: 'Site Url Must be Unique' });
+                                                                    }else{
+                                                                        //If all checks done ..
+                                                                         StoreCrud();
+                                                                    }
+                                                            });
+                                                        }
+                                            }//else
+                                        
+                                    // }
                     });
+
+                  
                     function StoreCrud() {
                         var query = connection_ikon_cms.query('select * from icn_store where lower(st_name) = ?', [req.body.store_name.toLowerCase()], function (err, result) {
                             if (err) {

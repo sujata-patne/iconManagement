@@ -25,7 +25,7 @@
                         <div class="form-group">
                             <label for="storeurl" class="col-sm-3 control-label"><span class="asterisk">*</span>Store URL</label>
                             <div class="col-sm-9">
-                                <input type="text" name="storeurl" class="form-control" required placeholder="Store URL" data-ng-model="StoreURL" data-ng-pattern="/^([^\/\.]+\.)*?([^\/\.]+\.[^:\/\s\.]{2,3}(\.[^:\/\s\.]‌​{2,3})?(:\d+)?)($|\/)([^#?\s]+)?(.*?)?(#[\w\-]+)?$/">
+                                <input type="text" name="storeurl" class="form-control" required placeholder="Store URL" data-ng-model="StoreURL" data-ng-pattern="/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/">
                                 <span style="color: red" ng-show="storeForm.$submitted || storeForm.storeurl.$dirty">
                                     <span ng-show="storeForm.storeurl.$error.required">Store URL is required.</span>
                                     <span ng-show="storeForm.storeurl.$error.pattern"> Not valid Store URL!</span>
@@ -46,9 +46,10 @@
                             <label for="contactperson" class="col-sm-3 control-label">
                                 <span class="asterisk">*</span>Contact Person</label>
                             <div class="col-sm-9">
-                                <input type="text" name="contactperson" class="form-control" required placeholder="Contact Person" data-ng-model="ContactPerson">
+                                <input type="text" name="contactperson" class="form-control" required placeholder="Contact Person" data-ng-pattern="/^[a-zA-Z]*$/" data-ng-model="ContactPerson">
                                 <span style="color: red" ng-show="storeForm.$submitted || storeForm.contactperson.$dirty">
                                     <span ng-show="storeForm.contactperson.$error.required">Contact Person is required.</span>
+                                    <span data-ng-show="storeForm.contactperson.$error.pattern">Not valid Person name</span>
                                 </span>
                             </div>
                         </div>
@@ -96,9 +97,9 @@
                                     <th>Action</th>
                                 </tr>
                                 </thead>
-                                <tbody data-ng-repeat="i in Stores  track by $index">
+                                <tbody data-ng-repeat="i in Stores | startFrom:currentPageNo * pageLimit | limitTo: pageLimit track by $index">
                                 <tr>
-                                    <td>{{$index+1}}</td>
+                                    <td>{{$index+1+(currentPageNo * pageLimit)}}</td>
                                     <td>{{i.st_name}}</td>
                                     <td>{{i.ld_display_name}}</td>
                                     <td>{{i.ld_mobile_no}}</td>
@@ -106,14 +107,30 @@
                                     <td>
                                         <a href="#edit-store/{{i.st_id}}"><i title="Edit" class="fa fa-edit"></i></a>
                                         <a href="#assign-right/{{i.st_id}}"><i title="Edit" class="fa fa-file"></i></a>
-
+                                        
                                     </td>
                                 </tr>
                                 </tbody>
                             </table>
+                               <div class="row" ng-show="Stores.length > pageLimit">
+                                    <div class="col-xs-6 col-sm-6">
+                                        <button type="button" class="btn btn-primary btn-w-xs" title="Previous" data-ng-disabled="currentPageNo == 0" data-ng-click="currentPageNo=currentPageNo-1">Previous</button>
+
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 text-right">
+                                        <button type="button" class="btn btn-primary btn-w-xs" title="Next" data-ng-disabled="currentPageNo >= Stores.length/pageLimit - 1" data-ng-click="currentPageNo=currentPageNo+1">Next</button>
+                                    </div>
+                              </div>
+
+                                
                         </div>
                     </div>
                 </div>
+
+
+                     
+
+
                                     <!--<div class="row">
                                                             <div class="col-xs-12">
                                                                 <div class="col-sm-offset-5 col-sm-7">

@@ -1,6 +1,6 @@
- 
+
 var mysql = require('../config/db').pool;
- 
+
 exports.getassignrights = function (req, res, next) {
     try {
         if (req.session) {
@@ -18,61 +18,70 @@ exports.getassignrights = function (req, res, next) {
                                     res.status(500).json(err.message);
                                 }
                                 else {
-
-                                    var query = connection_ikon_cms.query('select * from icn_vendor_detail', function (err, VendorList) {
+                                    var query = connection_ikon_cms.query('select distinct cd_id,cd_name from (select CASE  WHEN groupid is null THEN icn_cnt_name ELSE country_name  END AS country_name, CASE  WHEN groupid is null THEN icn_cnt ELSE countryid  END AS country_id,groupid from (SELECT cd_id as icn_cnt,cd_name as icn_cnt_name ,cd_cm_id as icn_cd_cm_id FROM catalogue_detail)cd inner join(select cm_id as icn_cm_id,cm_name as icn_cm_name from catalogue_master where cm_name in("icon_geo_location") )cm on(cm.icn_cm_id = cd.icn_cd_cm_id) left outer join (select cm_id as groupid,cm_name as groupname from catalogue_master )master on(master.groupname = cd.icn_cnt_name) left outer join (select cd_id as countryid,cd_name as country_name,cd_cm_id as m_groupid from catalogue_detail)mastercnt on(master.groupid =mastercnt.m_groupid))country inner join (select cd_id ,cd_name ,cd_cm_id,cm_id,cm_name  from catalogue_detail,catalogue_master where cm_id =cd_cm_id and cm_name in("global_country_list"))g_cd on(g_cd.cd_name =country.country_name)', function (err, Countrys) {
                                         if (err) {
                                             connection_ikon_cms.release();
                                             res.status(500).json(err.message);
                                         }
                                         else {
-                                            var query = connection_ikon_cms.query('select * from icn_store', function (err, Stores) {
+
+                                            var query = connection_ikon_cms.query('select * from icn_vendor_detail', function (err, VendorList) {
                                                 if (err) {
                                                     connection_ikon_cms.release();
                                                     res.status(500).json(err.message);
                                                 }
                                                 else {
-                                                    var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_country_distribution_rights)', function (err, AssignCountrys) {
+                                                    var query = connection_ikon_cms.query('select * from icn_store', function (err, Stores) {
                                                         if (err) {
                                                             connection_ikon_cms.release();
                                                             res.status(500).json(err.message);
                                                         }
                                                         else {
-                                                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_payment_type)', function (err, AssignPaymentTypes) {
+                                                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_country_distribution_rights)', function (err, AssignCountrys) {
                                                                 if (err) {
                                                                     connection_ikon_cms.release();
                                                                     res.status(500).json(err.message);
                                                                 }
                                                                 else {
-                                                                    var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_payment_channel)', function (err, AssignPaymentChannels) {
+                                                                    var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_payment_type)', function (err, AssignPaymentTypes) {
                                                                         if (err) {
                                                                             connection_ikon_cms.release();
                                                                             res.status(500).json(err.message);
                                                                         }
                                                                         else {
-                                                                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_vendor)', function (err, AssignVendors) {
+                                                                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_payment_channel)', function (err, AssignPaymentChannels) {
                                                                                 if (err) {
                                                                                     connection_ikon_cms.release();
                                                                                     res.status(500).json(err.message);
                                                                                 }
                                                                                 else {
-                                                                                    var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_content_type)', function (err, AssignContentTypes) {
+                                                                                    var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_vendor)', function (err, AssignVendors) {
                                                                                         if (err) {
                                                                                             connection_ikon_cms.release();
                                                                                             res.status(500).json(err.message);
                                                                                         }
                                                                                         else {
-                                                                                            connection_ikon_cms.release();
-                                                                                            res.send({
-                                                                                                MasterList: MasterList,
-                                                                                                VendorList: VendorList,
-                                                                                                Stores: Stores,
-                                                                                                ContentTypes: ContentTypes,
-                                                                                                AssignCountrys: AssignCountrys,
-                                                                                                AssignPaymentTypes: AssignPaymentTypes,
-                                                                                                AssignPaymentChannels: AssignPaymentChannels,
-                                                                                                AssignContentTypes: AssignContentTypes,
-                                                                                                AssignVendors: AssignVendors,
-                                                                                                UserRole: req.session.UserRole
+                                                                                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_content_type)', function (err, AssignContentTypes) {
+                                                                                                if (err) {
+                                                                                                    connection_ikon_cms.release();
+                                                                                                    res.status(500).json(err.message);
+                                                                                                }
+                                                                                                else {
+                                                                                                    connection_ikon_cms.release();
+                                                                                                    res.send({
+                                                                                                        MasterList: MasterList,
+                                                                                                        VendorList: VendorList,
+                                                                                                        Countrys: Countrys,
+                                                                                                        Stores: Stores,
+                                                                                                        ContentTypes: ContentTypes,
+                                                                                                        AssignCountrys: AssignCountrys,
+                                                                                                        AssignPaymentTypes: AssignPaymentTypes,
+                                                                                                        AssignPaymentChannels: AssignPaymentChannels,
+                                                                                                        AssignContentTypes: AssignContentTypes,
+                                                                                                        AssignVendors: AssignVendors,
+                                                                                                        UserRole: req.session.UserRole
+                                                                                                    });
+                                                                                                }
                                                                                             });
                                                                                         }
                                                                                     });
@@ -109,7 +118,7 @@ exports.getassignrights = function (req, res, next) {
         res.status(500).json(err.message);
     }
 }
- 
+
 exports.updateassignright = function (req, res, next) {
     try {
         if (req.session) {
@@ -136,7 +145,7 @@ exports.updateassignright = function (req, res, next) {
                             case "vendor": groupid = vendor_group_id; break;
                             case "contenttype": groupid = content_type_group_id; break;
                         }
-                        return groupid
+                        return groupid;
                     }
 
                     function SetGroupId(type, groupid) {
@@ -286,8 +295,6 @@ exports.updateassignright = function (req, res, next) {
                             });
                         };
                     }
-
-
 
                 });
             }

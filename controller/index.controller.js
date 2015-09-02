@@ -7,7 +7,7 @@ function getDate(val) {
     var dt = d.getDate();
     var month = d.getMonth() + 1;
     var year = d.getFullYear();
-    var selectdate = Pad("0", month, 2) + '/' + Pad("0", dt, 2) + '/' + year;
+    var selectdate = Pad("0", dt, 2) + '/' + Pad("0", month, 2) + '/'  + year;
     return selectdate;
 }
 
@@ -139,7 +139,7 @@ exports.authenticate = function (req, res, next) {
 function getPages(role) {
 
     var pagesjson = [
-        { 'pagename': 'Manage Store', 'href': 'add-store', 'id': 'store', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
+        { 'pagename': 'Add/Edit Store', 'href': 'add-store', 'id': 'store', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
         { 'pagename': 'Assign Rights', 'href': 'assign-right', 'id': 'assign-right', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
         { 'pagename': 'Manage Content', 'href': 'manage-content', 'id': 'manage-content', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
         { 'pagename': 'Manage Country List', 'href': 'manage-country-list', 'id': 'manage-country-list', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },

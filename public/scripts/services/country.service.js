@@ -1,7 +1,7 @@
  
 myApp.service('Countrys', ['$http', function ($http) {
     var service = {};
-    service.baseRestUrl = 'http://localhost:3000';
+    service.baseRestUrl = '';
     service.getCountrys = function (data, success, error) {
         $http.post(service.baseRestUrl + '/getcountry', data).success(function (items) {
             success(items);

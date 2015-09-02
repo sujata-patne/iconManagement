@@ -53,7 +53,11 @@ myApp.controller('manageContentCtrl', function ($scope, $window, $http, ngProgre
                 $scope.SelectedDeliveryType.push(content.cmd_entity_detail);
             });
         }
-    });
+    }, function (error) {
+                $scope.error = error;
+                $scope.errorvisible = true;
+                ngProgress.complete();
+            });
 
     $scope.SelectParentContentTypeChange = function () {
         $scope.SelectedDeliveryType = [];

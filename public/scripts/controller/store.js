@@ -15,6 +15,9 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
     $scope.OldStore = [];
     $scope.cmd_entity_type = 0;
     $scope.Stores = [];
+    $scope.currentPageNo = 0;
+    $scope.pageLimit = 10;
+
 
     Stores.getStores({ Id: $stateParams.id, state: $scope.CurrentPage }, function (store) {
         if (store.Channels.length > 0) {

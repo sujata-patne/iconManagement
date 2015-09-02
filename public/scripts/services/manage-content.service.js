@@ -1,6 +1,6 @@
 myApp.service('ContentTypes', ['$http', function ($http) {
     var service = {};
-    service.baseRestUrl = 'http://localhost:3000';
+    service.baseRestUrl = '';
 
     service.getManageContentType = function (data, success, error) {
         $http.post(service.baseRestUrl + '/getmanagecontent', data).success(function (items) {

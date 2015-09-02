@@ -1,4 +1,4 @@
- 
+
 myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateParams, AssignRights, $state, _, $window) {
     $('.removeActiveClass').removeClass('active');
     $('#assign-right').addClass('active');
@@ -22,7 +22,6 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         $scope.Countrys = assignrights.Countrys;
         $scope.PaymentTypes = _.where(assignrights.MasterList, { cm_name: "Payment Type" });
         $scope.PaymentChannels = _.where(assignrights.MasterList, { cm_name: "Payment Channel" });
-        $scope.Countrys = _.where(assignrights.MasterList, { cm_name: "icon_geo_location" });
         var srorecontent = _.find(assignrights.MasterList, function (store) { return store.cm_name == "Store" });
         if (srorecontent) {
             $scope.StoreContentType = srorecontent.cd_id;
@@ -144,5 +143,5 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             });
         }
     };
-     
+
 });
