@@ -11,17 +11,25 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     $scope.CurrentPage = $state.current.name;
 
     AssignRights.GetAssignRights({ state: $scope.CurrentPage }, function (assignrights) {
+
         $scope.Stores = assignrights.Stores;
-        $scope.Vendors = assignrights.VendorList;
-        $scope.ContentTypes = assignrights.ContentTypes;
+        $scope.StoreChannels = assignrights.StoreChannels;
+
+        $scope.AllContentTypes = assignrights.ContentTypes;
+        $scope.AllCountrys = assignrights.Countrys;
+        $scope.AllPaymentTypes = assignrights.PaymentTypes;
+        $scope.AllPaymentChannels = assignrights.PaymentChannels;
+        $scope.VendorCountry = assignrights.VendorCountry;
+
+        $scope.PartnerDistibutionChannels = assignrights.PartnerDistibutionChannels;
+        $scope.VendorCountrys = assignrights.VendorCountrys;
+
         $scope.AssignCountrys = assignrights.AssignCountrys;
         $scope.AssignPaymentTypes = assignrights.AssignPaymentTypes;
         $scope.AssignPaymentChannels = assignrights.AssignPaymentChannels;
         $scope.AssignContentTypes = assignrights.AssignContentTypes;
         $scope.AssignVendors = assignrights.AssignVendors;
-        $scope.Countrys = assignrights.Countrys;
-        $scope.PaymentTypes = _.where(assignrights.MasterList, { cm_name: "Payment Type" });
-        $scope.PaymentChannels = _.where(assignrights.MasterList, { cm_name: "Payment Channel" });
+
         var srorecontent = _.find(assignrights.MasterList, function (store) { return store.cm_name == "Store" });
         if (srorecontent) {
             $scope.StoreContentType = srorecontent.cd_id;
@@ -37,6 +45,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     });
 
     $scope.storeChange = function () {
+
         var store = _.find($scope.Stores, function (store) { return store.st_id == $scope.SelectedStore });
         if (store) {
             $scope.PricePointDetail = store.st_pricepoint_url;
@@ -45,11 +54,16 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.payment_channel_group_id = store.st_payment_channel;
             $scope.vendor_group_id = store.st_vendor;
             $scope.content_type_group_id = store.st_content_type;
+            $scope.ContentTypes = $scope.AllContentTypes;
+            $scope.Countrys = $scope.AllCountrys;
+            $scope.PaymentTypes = $scope.AllPaymentTypes;
             $scope.SelectedGeoLocation = _.pluck(_.where($scope.AssignCountrys, { cmd_group_id: store.st_country_distribution_rights }), "cmd_entity_detail");
             $scope.SelectedPaymentType = _.pluck(_.where($scope.AssignPaymentTypes, { cmd_group_id: store.st_payment_type }), "cmd_entity_detail");
-            $scope.SelectedPaymentChannel = _.pluck(_.where($scope.AssignPaymentChannels, { cmd_group_id: store.st_payment_channel }), "cmd_entity_detail");
             $scope.SelectContentType = _.pluck(_.where($scope.AssignContentTypes, { cmd_group_id: store.st_content_type }), "cmd_entity_detail");
+            $scope.countryChange();
             $scope.SelectedVendor = _.pluck(_.where($scope.AssignVendors, { cmd_group_id: store.st_vendor }), "cmd_entity_detail");
+            $scope.SelectedPaymentChannel = _.pluck(_.where($scope.AssignPaymentChannels, { cmd_group_id: store.st_payment_channel }), "cmd_entity_detail");
+
         }
         else {
             $scope.PricePointDetail = null;
@@ -58,6 +72,11 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.payment_channel_group_id = null;
             $scope.vendor_group_id = null;
             $scope.content_type_group_id = null;
+            $scope.Vendors = [];
+            $scope.ContentTypes = [];
+            $scope.Countrys = [];
+            $scope.PaymentTypes = [];
+            $scope.PaymentChannels = [];
             $scope.SelectedGeoLocation = [];
             $scope.SelectedPaymentType = [];
             $scope.SelectedPaymentChannel = [];
@@ -67,7 +86,27 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     }
 
 
-
+    $scope.countryChange = function () {
+        var Vendors = _.filter($scope.VendorCountry, function (country) { return _.contains($scope.SelectedGeoLocation, country.r_country_distribution_rights) });
+        var Vendorarray = [];
+        $scope.Vendors = [];
+        _.each(Vendors, function (cnt) {
+            if (Vendorarray.indexOf(cnt.vd_id) == -1) {
+                Vendorarray.push(cnt.vd_id);
+                $scope.Vendors.push(cnt);
+            }
+        });
+        var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
+        var paymentchannels = _.filter($scope.PartnerDistibutionChannels, function (channel) { return _.contains($scope.SelectedGeoLocation, channel.partner_cty_id) && _.contains(storechannels, channel.en_id) });
+        var channelarray = [];
+        $scope.PaymentChannels = [];
+        _.each(paymentchannels, function (channel) {
+            if (channelarray.indexOf(channel.partner_id) == -1) {
+                channelarray.push(channel.partner_id);
+                $scope.PaymentChannels.push(channel);
+            }
+        });
+    }
 
     function GetDeleteAssignRights(OldData, SelectedData, GroupId, type, DeleteArray) {
         _.each(OldData, function (old) {

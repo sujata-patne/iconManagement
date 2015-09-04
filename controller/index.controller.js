@@ -7,7 +7,7 @@ function getDate(val) {
     var dt = d.getDate();
     var month = d.getMonth() + 1;
     var year = d.getFullYear();
-    var selectdate = Pad("0", dt, 2) + '/' + Pad("0", month, 2) + '/'  + year;
+    var selectdate = Pad("0", dt, 2) + '/' + Pad("0", month, 2) + '/' + year;
     return selectdate;
 }
 
@@ -172,7 +172,7 @@ exports.forgotPassword = function (req, res, next) {
                             }
                         });
                         var mailOptions = {
-                            to: 'sujata.patne@jetsynthesys.com',
+                            to: row[0].ld_email_id,
                             subject: 'Forgot Password',
                             html: "<p>Hi, " + row[0].ld_user_id + " <br />This is your password: " + row[0].ld_user_pwd + "</p>"
                         }

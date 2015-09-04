@@ -46,7 +46,7 @@
                             <label for="contactperson" class="col-sm-3 control-label">
                                 <span class="asterisk">*</span>Contact Person</label>
                             <div class="col-sm-9">
-                                <input type="text" name="contactperson" class="form-control" required placeholder="Contact Person" data-ng-pattern="/^[a-zA-Z]*$/" data-ng-model="ContactPerson">
+                                <input type="text" name="contactperson" class="form-control" required placeholder="Contact Person" data-ng-pattern="/^[a-z A-Z]*$/" data-ng-model="ContactPerson">
                                 <span style="color: red" ng-show="storeForm.$submitted || storeForm.contactperson.$dirty">
                                     <span ng-show="storeForm.contactperson.$error.required">Contact Person is required.</span>
                                     <span data-ng-show="storeForm.contactperson.$error.pattern">Not valid Person name</span>

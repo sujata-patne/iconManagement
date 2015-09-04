@@ -1,59 +1,46 @@
 
 var mysql = require('../config/db').pool;
+var nodemailer = require('nodemailer');
+var async = require("async");
+
 
 exports.getstoredata = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-                    var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("Channel Distribution") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, Channels) {
-                        if (err) {
-                            connection_ikon_cms.release();
-                            res.status(500).json(err.message);
-                        }
-                        else {
+                    async.parallel({
+                        Channels: function (callback) {
+                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("Channel Distribution") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, Channels) {
+                                callback(err, Channels);
+                            });
+                        },
+                        StoreList: function (callback) {
+                            var storequery = req.body.state == "edit-store" ? "where st_id = " + req.body.Id : "";
+                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store ' + storequery + ')st inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) inner join(select * from icn_login_detail)ld on(su.su_ld_id  = ld.ld_id)', function (err, StoreList) {
+                                callback(err, StoreList);
+                            });
+                        },
+                        ChannelRights: function (callback) {
                             if (req.body.state == "edit-store") {
-                                var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store where st_id = ?)st inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) inner join(select * from icn_login_detail)ld on(su.su_ld_id  = ld.ld_id)', [req.body.Id], function (err, StoreList) {
-                                    if (err) {
-                                        connection_ikon_cms.release();
-                                        res.status(500).json(err.message);
-                                    }
-                                    else {
-                                        var query = connection_ikon_cms.query('select * from (select * from icn_store where st_id= ? )st inner join (select * from multiselect_metadata_detail ) mmd on (st.st_front_type=mmd.cmd_group_id) inner join(select * from catalogue_detail )cd on (cd.cd_id =mmd.cmd_entity_detail) inner join(select * from catalogue_master where cm_name = "Channel Distribution")cm on(cm.cm_id = cd_cm_id and mmd.cmd_entity_type = cm.cm_id)', [req.body.Id], function (err, ChannelRights) {
-                                            if (err) {
-                                                connection_ikon_cms.release();
-                                                res.status(500).json(err.message);
-                                            }
-                                            else {
-                                                connection_ikon_cms.release();
-                                                res.send({
-                                                    Channels: Channels,
-                                                    StoreList: StoreList,
-                                                    ChannelRights: ChannelRights,
-                                                    RoleUser: req.session.UserRole
-                                                });
-                                            }
-                                        });
-                                    }
+                                var query = connection_ikon_cms.query('select * from (select * from icn_store where st_id= ? )st inner join (select * from multiselect_metadata_detail ) mmd on (st.st_front_type=mmd.cmd_group_id) inner join(select * from catalogue_detail )cd on (cd.cd_id =mmd.cmd_entity_detail) inner join(select * from catalogue_master where cm_name = "Channel Distribution")cm on(cm.cm_id = cd_cm_id and mmd.cmd_entity_type = cm.cm_id)', [req.body.Id], function (err, ChannelRights) {
+                                    callback(err, ChannelRights);
                                 });
                             }
                             else {
-                                var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store)st inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) inner join(select * from icn_login_detail)ld on(su.su_ld_id  = ld.ld_id)', function (err, StoreList) {
-                                    if (err) {
-                                        connection_ikon_cms.release();
-                                        res.status(500).json(err.message);
-                                    }
-                                    else {
-                                        connection_ikon_cms.release();
-                                        res.send({
-                                            Channels: Channels,
-                                            StoreList: StoreList,
-                                            ChannelRights: [],
-                                            RoleUser: req.session.UserRole
-                                        });
-                                    }
-                                });
+                                callback(null, []);
                             }
+                        },
+                        UserRole: function (callback) {
+                            callback(null, req.session.UserRole);
+                        }
+                    }, function (err, results) {
+                        if (err) {
+                            connection_ikon_cms.release();
+                            res.status(500).json(err.message);
+                        } else {
+                            connection_ikon_cms.release();
+                            res.send(results);
                         }
                     });
                 });
@@ -77,56 +64,64 @@ exports.AddEditStore = function (req, res, next) {
         if (req.session) {
             if (req.session.UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-                                          var query = connection_ikon_cms.query('select * from icn_login_detail where lower(ld_user_name) = ?', [req.body.store_email.toLowerCase()], function (err, result) {
-                                            if (err) {
-                                                connection_ikon_cms.release();
-                                                res.status(500).json(err.message);
+                    var query = connection_ikon_cms.query('select * from icn_login_detail where lower(ld_user_name) = ?', [req.body.store_email.toLowerCase()], function (err, result) {
+                        if (err) {
+                            connection_ikon_cms.release();
+                            res.status(500).json(err.message);
+                        }
+                        else {
+                            if (result.length > 0) {
+                                if (result[0].ld_id == req.body.store_ld_id && req.body.state == "edit-store") {
+                                    var query = connection_ikon_cms.query('select * from icn_store where lower(st_url) = ?', [req.body.store_site_url.toLowerCase()], function (err, result) {
+                                        if (err) {
+                                            connection_ikon_cms.release();
+                                            res.status(500).json(err.message);
+                                        }
+                                        else {
+                                            if (result.length > 0) {
+                                                if (result[0].st_id == req.body.store_id) {
+                                                    StoreCrud();
+                                                }
+                                                else {
+                                                    connection_ikon_cms.release();
+                                                    res.send({ success: false, message: 'Site Url Must be Unique' });
+                                                }
+                                            } else {
+                                                StoreCrud();
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    connection_ikon_cms.release();
+                                    res.send({ success: false, message: 'User Id Must be Unique' });
+                                }
+                            }
+                            else {
+                                var query = connection_ikon_cms.query('select * from icn_store where lower(st_url) = ?', [req.body.store_site_url.toLowerCase()], function (err, result) {
+                                    if (err) {
+                                        connection_ikon_cms.release();
+                                        res.status(500).json(err.message);
+                                    }
+                                    else {
+                                        if (result.length > 0) {
+                                            if (result[0].st_id == req.body.store_id) {
+                                                StoreCrud();
                                             }
                                             else {
-                                                        if (result.length > 0) {
-                                                            if (result[0].ld_id == req.body.store_ld_id && req.body.state == "edit-store") {
-                                                                  //Site url must be unique check :
-                                                                  var query = connection_ikon_cms.query('select * from icn_store where lower(st_url) = ? AND st_id != ?', [req.body.store_site_url.toLowerCase(),req.body.store_id], function (err, result) {
-                                                                  if(err){
-                                                                            connection_ikon_cms.release();
-                                                                            res.status(500).json(err.message);
-                                                                    }
-                                                                    if(result.length > 0){
-                                                                        connection_ikon_cms.release();
-                                                                        res.send({ success: false, message: 'Site Url Must be Unique' });
-                                                                    }else{
-
-                                                                            StoreCrud();
-                                                                    }
-                                                                });
-                                                            }
-                                                            else {
-                                                                connection_ikon_cms.release();
-                                                                res.send({ success: false, message: 'User Id Must be Unique' });
-                                                            }
-                                                        }
-                                                        else {
-                                                            //Site url must be unique :
-                                                            var query = connection_ikon_cms.query('select * from icn_store where lower(st_url) = ?', [req.body.store_site_url.toLowerCase()], function (err, result) {
-                                                                    if(err){
-                                                                            connection_ikon_cms.release();
-                                                                            res.status(500).json(err.message);
-                                                                    }
-                                                                    if(result.length > 0){
-                                                                        connection_ikon_cms.release();
-                                                                        res.send({ success: false, message: 'Site Url Must be Unique' });
-                                                                    }else{
-                                                                        //If all checks done ..
-                                                                         StoreCrud();
-                                                                    }
-                                                            });
-                                                        }
-                                            }//else
-                                        
-                                    // }
+                                                connection_ikon_cms.release();
+                                                res.send({ success: false, message: 'Site Url Must be Unique' });
+                                            }
+                                        } else {
+                                            StoreCrud();
+                                        }
+                                    }
+                                });
+                            }
+                        }
                     });
 
-                  
+
                     function StoreCrud() {
                         var query = connection_ikon_cms.query('select * from icn_store where lower(st_name) = ?', [req.body.store_name.toLowerCase()], function (err, result) {
                             if (err) {
@@ -315,7 +310,6 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                 var ld_id = result[0].id != null ? parseInt(result[0].id + 1) : 1;
                                                                                                 var storeuser = {
                                                                                                     ld_id: ld_id,
-                                                                                                    ld_vd_id: 1,
                                                                                                     ld_active: 1,
                                                                                                     ld_user_id: req.body.store_email,
                                                                                                     ld_user_pwd: 'icon',
@@ -356,12 +350,37 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                                         connection_ikon_cms.release();
                                                                                                                         res.status(500).json(err.message);
                                                                                                                     } else {
+                                                                                                                        //var smtpTransport = nodemailer.createTransport({
+                                                                                                                        //    service: "Gmail",
+                                                                                                                        //    auth: {
+                                                                                                                        //        user: "jetsynthesis@gmail.com",
+                                                                                                                        //        pass: "j3tsynthes1s"
+                                                                                                                        //    }
+                                                                                                                        //});
+                                                                                                                        //var Message = "<table style=\"border-collapse:collapse\" width=\"510\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tbody><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr>";
+                                                                                                                        //Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
+                                                                                                                        //Message += " </td></tr>";
+                                                                                                                        //Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
+                                                                                                                        //Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://localhost:3000\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                                                                                                                        //Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
+                                                                                                                        //var mailOptions = {
+                                                                                                                        //    to: req.body.store_email,
+                                                                                                                        //    subject: 'New Store User',
+                                                                                                                        //    html: Message
+                                                                                                                        //}
+                                                                                                                        //smtpTransport.sendMail(mailOptions, function (error, response) {
+                                                                                                                        //    if (error) {
+                                                                                                                        //        console.log(error);
+                                                                                                                        //        res.end("error");
+                                                                                                                        //    } else {
                                                                                                                         connection_ikon_cms.release();
                                                                                                                         res.send({
                                                                                                                             StoreList: StoreList,
                                                                                                                             success: true,
-                                                                                                                            message: 'Store added successfully.'
+                                                                                                                            message: 'Store added successfully. Temprory Password sent to register store user email.'
                                                                                                                         });
+                                                                                                                        //    }
+                                                                                                                        //});
                                                                                                                     }
                                                                                                                 });
                                                                                                             }
@@ -424,7 +443,6 @@ exports.AddEditStore = function (req, res, next) {
                                                                 var ld_id = result[0].id != null ? parseInt(result[0].id + 1) : 1;
                                                                 var storeuser = {
                                                                     ld_id: ld_id,
-                                                                    ld_vd_id: 1,
                                                                     ld_active: 1,
                                                                     ld_user_id: req.body.store_email,
                                                                     ld_user_pwd: 'icon',
@@ -463,12 +481,37 @@ exports.AddEditStore = function (req, res, next) {
                                                                                         connection_ikon_cms.release();
                                                                                         res.status(500).json(err.message);
                                                                                     } else {
+                                                                                        //var smtpTransport = nodemailer.createTransport({
+                                                                                        //    service: "Gmail",
+                                                                                        //    auth: {
+                                                                                        //        user: "jetsynthesis@gmail.com",
+                                                                                        //        pass: "j3tsynthes1s"
+                                                                                        //    }
+                                                                                        //});
+                                                                                        //var Message = "<table style=\"border-collapse:collapse\" width=\"510\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tbody><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr>";
+                                                                                        //Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
+                                                                                        //Message += " </td></tr>";
+                                                                                        //Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
+                                                                                        //Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://localhost:3000\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                                                                                        //Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
+                                                                                        //var mailOptions = {
+                                                                                        //    to: req.body.store_email,
+                                                                                        //    subject: 'New Store User',
+                                                                                        //    html: Message
+                                                                                        //}
+                                                                                        //smtpTransport.sendMail(mailOptions, function (error, response) {
+                                                                                        //    if (error) {
+                                                                                        //        console.log(error);
+                                                                                        //        res.end("error");
+                                                                                        //    } else {
                                                                                         connection_ikon_cms.release();
                                                                                         res.send({
                                                                                             StoreList: StoreList,
                                                                                             success: true,
-                                                                                            message: 'Store added successfully.'
+                                                                                            message: 'Store added successfully. Temprory Password sent to register store user email.'
                                                                                         });
+                                                                                        //    }
+                                                                                        //});
                                                                                     }
                                                                                 });
                                                                             }

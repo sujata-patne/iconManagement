@@ -1,40 +1,38 @@
 
 var mysql = require('../config/db').pool;
+var async = require("async");
 
 exports.getcountrydata = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-                    var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, Countrys) {
+                    async.parallel({
+                        CountryList: function (callback) {
+                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, CountryList) {
+                                callback(err, CountryList);
+                            });
+                        },
+                        CountryGroups: function (callback) {
+                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("country_group") )cm on(cm.cm_id = cd.cd_cm_id) inner join(select * from catalogue_master  )cm_group on(cm_group.cm_name = cd.cd_name) inner join(select * from catalogue_detail )cd_group on(cd_group.cd_cm_id = cm_group.cm_id)', function (err, CountryGroups) {
+                                callback(err, CountryGroups);
+                            });
+                        },
+                        MasterCountryList: function (callback) {
+                            var query = connection_ikon_cms.query('select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location")', function (err, MasterCountryList) {
+                                callback(err, MasterCountryList);
+                            });
+                        },
+                        UserRole: function (callback) {
+                            callback(null, req.session.UserRole);
+                        }
+                    }, function (err, results) {
                         if (err) {
                             connection_ikon_cms.release();
                             res.status(500).json(err.message);
-                        }
-                        else {
-                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("country_group") )cm on(cm.cm_id = cd.cd_cm_id) inner join(select * from catalogue_master  )cm_group on(cm_group.cm_name = cd.cd_name) inner join(select * from catalogue_detail )cd_group on(cd_group.cd_cm_id = cm_group.cm_id)', function (err, CountryGroups) {
-                                if (err) {
-                                    connection_ikon_cms.release();
-                                    res.status(500).json(err.message);
-                                }
-                                else {
-                                    var query = connection_ikon_cms.query('select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location")', function (err, MasterCountryList) {
-                                        if (err) {
-                                            connection_ikon_cms.release();
-                                            res.status(500).json(err.message);
-                                        }
-                                        else {
-                                            connection_ikon_cms.release();
-                                            res.send({
-                                                MasterCountryList: MasterCountryList,
-                                                CountryGroups: CountryGroups,
-                                                CountryList: Countrys,
-                                                RoleUser: req.session.UserRole
-                                            });
-                                        }
-                                    });
-                                }
-                            });
+                        } else {
+                            connection_ikon_cms.release();
+                            res.send(results);
                         }
                     });
                 });

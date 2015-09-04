@@ -1,57 +1,43 @@
 var mysql = require('../config/db').pool;
+var async = require("async");
 
 exports.getmanagecontentdata = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-                    var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("Content Type","Delivery Type") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, ContentMasterList) {
+                    async.parallel({
+                        ContentMasterList: function (callback) {
+                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("Content Type","Delivery Type") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, ContentMasterList) {
+                                callback(err, ContentMasterList);
+                            });
+                        },
+                        ContentList: function (callback) {
+                            var storequery = req.body.state == "edit-content" ? "where mct_id = " + req.body.Id : "";
+                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_manage_content_type)cnt inner join (select cd_id as parentid,cd_name as parentname from catalogue_detail)parent on(parent.parentid  = cnt.mct_parent_cnt_type_id) inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = cnt.mct_cnt_type_id)', function (err, ContentList) {
+                                callback(err, ContentList);
+                            });
+                        },
+                        ContentRights: function (callback) {
+                            if (req.body.state == "edit-content") {
+                                var query = connection_ikon_cms.query('select * from (select * from icn_manage_content_type where mct_id = ? )cnt inner join (select * from multiselect_metadata_detail ) mmd on (cnt.mct_delivery_type_id=mmd.cmd_group_id) inner join(select * from catalogue_detail )cd on (cd.cd_id =mmd.cmd_entity_detail)', [req.body.Id], function (err, ContentRights) {
+                                    callback(err, ContentRights);
+                                });
+                            }
+                            else {
+                                callback(null, []);
+                            }
+                        },
+                        UserRole: function (callback) {
+                            callback(null, req.session.UserRole);
+                        }
+                    }, function (err, results) {
                         if (err) {
                             connection_ikon_cms.release();
                             res.status(500).json(err.message);
                         } else {
-                            if (req.body.state == "edit-content") {
-                                var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_manage_content_type where mct_id = ?)cnt inner join (select cd_id as parentid,cd_name as parentname from catalogue_detail)parent on(parent.parentid  = cnt.mct_parent_cnt_type_id) inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = cnt.mct_cnt_type_id)', [req.body.Id], function (err, ContentList) {
-                                    if (err) {
-                                        connection_ikon_cms.release();
-                                        res.status(500).json(err.message);
-                                    }
-                                    else {
-                                        var query = connection_ikon_cms.query('select * from (select * from icn_manage_content_type where mct_id = ? )cnt inner join (select * from multiselect_metadata_detail ) mmd on (cnt.mct_delivery_type_id=mmd.cmd_group_id) inner join(select * from catalogue_detail )cd on (cd.cd_id =mmd.cmd_entity_detail)', [req.body.Id], function (err, ContentRights) {
-                                            if (err) {
-                                                connection_ikon_cms.release();
-                                                res.status(500).json(err.message);
-                                            }
-                                            else {
-                                                connection_ikon_cms.release();
-                                                res.send({
-                                                    ContentMasterList: ContentMasterList,
-                                                    ContentList: ContentList,
-                                                    ContentRights: ContentRights,
-                                                    RoleUser: req.session.UserRole
-                                                });
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                            else {
-                                var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_manage_content_type )cnt inner join (select cd_id as parentid,cd_name as parentname from catalogue_detail)parent on(parent.parentid  = cnt.mct_parent_cnt_type_id) inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = cnt.mct_cnt_type_id)', function (err, ContentList) {
-                                    if (err) {
-                                        connection_ikon_cms.release();
-                                        res.status(500).json(err.message);
-                                    }
-                                    else {
-                                        connection_ikon_cms.release();
-                                        res.send({
-                                            ContentMasterList: ContentMasterList,
-                                            ContentList: ContentList,
-                                            ContentRights: [],
-                                            RoleUser: req.session.UserRole
-                                        });
-                                    }
-                                });
-                            }
+                            connection_ikon_cms.release();
+                            res.send(results);
                         }
                     });
                 });
@@ -65,7 +51,7 @@ exports.getmanagecontentdata = function (req, res, next) {
         connection_ikon_cms.release();
         res.status(500).json(error.message);
     }
-} 
+}
 
 exports.addeditcontenttype = function (req, res, next) {
     try {

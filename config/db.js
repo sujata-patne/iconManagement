@@ -19,11 +19,11 @@ poolCluster.add('CMS', {
     password: config.db_pass_ikon_cms,
     database: config.db_name_ikon_cms
 });
-poolCluster.add('CENTRAL', {
-    host: config.db_host_central,
-    user: config.db_user_central,
-    password: config.db_pass_central,
-    database: config.db_name_central
+poolCluster.add('GATEWAY', {
+    host: config.db_host_billing_gateway,
+    user: config.db_user_billing_gateway,
+    password: config.db_pass_billing_gateway,
+    database: config.db_name_billing_gateway
 });
 
 exports.pool = poolCluster;
