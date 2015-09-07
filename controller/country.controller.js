@@ -9,7 +9,7 @@ exports.getcountrydata = function (req, res, next) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     async.parallel({
                         CountryList: function (callback) {
-                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, CountryList) {
+                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)  order by cd.cd_name', function (err, CountryList) {
                                 callback(err, CountryList);
                             });
                         },

@@ -218,18 +218,47 @@ exports.updateassignright = function (req, res, next) {
                                                         else {
                                                             cnt = cnt + 1;
                                                             if (cnt == storelength) {
-                                                                var query = connection_ikon_cms.query('UPDATE icn_store SET st_country_distribution_rights =?,st_payment_type=?,st_payment_channel=?,st_vendor=?,st_content_type=?, st_modified_on=?,st_modified_by=? WHERE st_id = ?', [country_group_id, payment_type_group_id, payment_channel_group_id, vendor_group_id, content_type_group_id, new Date(), req.session.UserName, req.body.storeId], function (err, result) {
+                                                               var query = connection_ikon_cms.query('UPDATE icn_store SET st_country_distribution_rights =?,st_payment_type=?,st_payment_channel=?,st_vendor=?,st_content_type=?, st_modified_on=?,st_modified_by=? WHERE st_id = ?', [country_group_id, payment_type_group_id, payment_channel_group_id, vendor_group_id, content_type_group_id, new Date(), req.session.UserName, req.body.storeId], function (err, result) {
                                                                     if (err) {
                                                                         connection_ikon_cms.release();
                                                                         res.status(500).json(err.message);
                                                                     } else {
-                                                                        connection_ikon_cms.release();
-                                                                        res.send({
-                                                                            success: true,
-                                                                            message: 'Store Updated successfully.'
+
+                                                                        var smtpTransport = nodemailer.createTransport({
+                                                                                                   service: "Gmail",
+                                                                                                   auth: {
+                                                                                                       user: "jetsynthesis@gmail.com",
+                                                                                                       pass: "j3tsynthes1s"
+                                                                                                   }
+                                                                                                });
+                                                                                                var Message = "<table style=\"border-collapse:collapse\" width=\"510\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tbody><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr>";
+                                                                                                Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
+                                                                                                Message += " </td></tr>";
+                                                                                                Message += " <h5>Site Rights Updated.</h5>";
+                                                                                                Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
+                                                                                                Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://localhost:3000\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                                                                                                Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
+                                                                                                var mailOptions = {
+                                                                                                   to: req.body.store_email,
+                                                                                                   subject: 'New Store User',
+                                                                                                   html: Message
+                                                                                                }
+                                                                                                smtpTransport.sendMail(mailOptions, function (error, response) {
+                                                                                                   if (error) {
+                                                                                                       console.log(error);
+                                                                                                       res.end("error");
+                                                                                                   } else {
+                                                                                                        connection_ikon_cms.release();
+                                                                                                        res.send({
+                                                                                                                success: true,
+                                                                                                                message: 'Store Updated successfully.'
+                                                                                                        });
+                                                                                                   }
+                                                                                                });
+
+                                                                                
+                                                                            }
                                                                         });
-                                                                    }
-                                                                });
                                                             } else {
                                                                 loop(cnt);
                                                             }

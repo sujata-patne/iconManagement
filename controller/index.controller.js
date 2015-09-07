@@ -38,10 +38,10 @@ exports.pages = function (req, res, next) {
     ];
 
     if (req.session) {
-        if (req.session.UserName) {
-            role = req.session.UserRole;
+        if (req.session.icon_UserName) {
+            role = req.session.icon_UserRole;
             var pageData = getPages(role);
-            res.render('index', { title: 'Express', username: req.session.FullName, Pages: pageData, userrole: req.session.UserType, lastlogin: " " + getDate(req.session.lastlogin) + " " + getTime(req.session.lastlogin) });
+            res.render('index', { title: 'Express', username: req.session.icon_FullName, Pages: pageData, userrole: req.session.icon_UserType, lastlogin: " " + getDate(req.session.icon_lastlogin) + " " + getTime(req.session.icon_lastlogin) });
         }
         else {
             res.redirect('/accountlogin');
@@ -54,7 +54,7 @@ exports.pages = function (req, res, next) {
 
 exports.login = function (req, res, next) {
     if (req.session) {
-        if (req.session.UserName) {
+        if (req.session.icon_UserName) {
             res.redirect("/#/plan-list");
         }
         else {
@@ -69,7 +69,7 @@ exports.login = function (req, res, next) {
 exports.logout = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 req.session = null;
                 res.redirect('/accountlogin');
             }
@@ -98,13 +98,13 @@ exports.authenticate = function (req, res, next) {
                         if (row[0].ld_active == 1) {
                             if (row[0].ld_user_type == "Store Admin") {
                                 var session = req.session;
-                                session.UserId = row[0].ld_id;
-                                session.UserRole = row[0].ld_role;
-                                session.UserName = req.body.username;
+                                session.icon_UserId = row[0].ld_id;
+                                session.icon_UserRole = row[0].ld_role;
+                                session.icon_UserName = req.body.username;
                                 session.Password = req.body.password;
-                                session.FullName = row[0].ld_display_name;
-                                session.lastlogin = row[0].ld_last_login;
-                                session.UserType = row[0].ld_user_type;
+                                session.icon_FullName = row[0].ld_display_name;
+                                session.icon_lastlogin = row[0].ld_last_login;
+                                session.icon_UserType = row[0].ld_user_type;
                                 var query = connection_central.query('update  icn_login_detail set  ld_last_login = ? where ld_id =?', [new Date(), row[0].ld_id], function (err, row, fields) {
                                     if (err) {
                                         res.render('account-login', { error: 'Error in database connection.' });
@@ -209,7 +209,7 @@ exports.viewChangePassword = function (req, res, next) {
 exports.changePassword = function (req, res) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 var session = req.session;
                 mysql.getConnection('CMS', function (err, connection_central) {
                     if (req.body.oldpassword == session.Password) {
