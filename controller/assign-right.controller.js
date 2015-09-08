@@ -1,11 +1,11 @@
 
 var mysql = require('../config/db').pool;
 var async = require("async");
-
+var nodemailer = require('nodemailer');
 exports.getassignrights = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     mysql.getConnection('GATEWAY', function (err, connection_billing_gateway) {
                         async.parallel({
@@ -76,7 +76,7 @@ exports.getassignrights = function (req, res, next) {
                                 });
                             },
                             UserRole: function (callback) {
-                                callback(null, req.session.UserRole);
+                                callback(null, req.session.icon_UserRole);
                             }
                         }, function (err, results) {
                             if (err) {
@@ -107,7 +107,7 @@ exports.getassignrights = function (req, res, next) {
 exports.updateassignright = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     var country_group_id = req.body.country_group_id;
                     var payment_type_group_id = req.body.payment_type_group_id;
@@ -170,7 +170,7 @@ exports.updateassignright = function (req, res, next) {
                                                 else {
                                                     cnt = cnt + 1;
                                                     if (cnt == storelength) {
-                                                        var query = connection_ikon_cms.query('UPDATE icn_store SET st_country_distribution_rights =?,st_payment_type=?,st_payment_channel=?,st_vendor=?,st_content_type=?, st_modified_on=?,st_modified_by=? WHERE st_id = ?', [country_group_id, payment_type_group_id, payment_channel_group_id, vendor_group_id, content_type_group_id, new Date(), req.session.UserName, req.body.storeId], function (err, result) {
+                                                        var query = connection_ikon_cms.query('UPDATE icn_store SET st_country_distribution_rights =?,st_payment_type=?,st_payment_channel=?,st_vendor=?,st_content_type=?, st_modified_on=?,st_modified_by=? WHERE st_id = ?', [country_group_id, payment_type_group_id, payment_channel_group_id, vendor_group_id, content_type_group_id, new Date(), req.session.icon_UserName, req.body.storeId], function (err, result) {
                                                             if (err) {
                                                                 connection_ikon_cms.release();
                                                                 res.status(500).json(err.message);
@@ -218,7 +218,7 @@ exports.updateassignright = function (req, res, next) {
                                                         else {
                                                             cnt = cnt + 1;
                                                             if (cnt == storelength) {
-                                                               var query = connection_ikon_cms.query('UPDATE icn_store SET st_country_distribution_rights =?,st_payment_type=?,st_payment_channel=?,st_vendor=?,st_content_type=?, st_modified_on=?,st_modified_by=? WHERE st_id = ?', [country_group_id, payment_type_group_id, payment_channel_group_id, vendor_group_id, content_type_group_id, new Date(), req.session.UserName, req.body.storeId], function (err, result) {
+                                                               var query = connection_ikon_cms.query('UPDATE icn_store SET st_country_distribution_rights =?,st_payment_type=?,st_payment_channel=?,st_vendor=?,st_content_type=?, st_modified_on=?,st_modified_by=? WHERE st_id = ?', [country_group_id, payment_type_group_id, payment_channel_group_id, vendor_group_id, content_type_group_id, new Date(), req.session.icon_UserName, req.body.storeId], function (err, result) {
                                                                     if (err) {
                                                                         connection_ikon_cms.release();
                                                                         res.status(500).json(err.message);
@@ -240,7 +240,7 @@ exports.updateassignright = function (req, res, next) {
                                                                                                 Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
                                                                                                 var mailOptions = {
                                                                                                    to: req.body.store_email,
-                                                                                                   subject: 'New Store User',
+                                                                                                   subject: 'Store Rights Assigned.',
                                                                                                    html: Message
                                                                                                 }
                                                                                                 smtpTransport.sendMail(mailOptions, function (error, response) {
@@ -272,7 +272,7 @@ exports.updateassignright = function (req, res, next) {
                             }
                         }
                         else {
-                            var query = connection_ikon_cms.query('UPDATE icn_store SET st_modified_on=?,st_modified_by=? WHERE st_id = ?', [new Date(), req.session.UserName, req.body.storeId], function (err, result) {
+                            var query = connection_ikon_cms.query('UPDATE icn_store SET st_modified_on=?,st_modified_by=? WHERE st_id = ?', [new Date(), req.session.icon_UserName, req.body.storeId], function (err, result) {
                                 if (err) {
                                     connection_ikon_cms.release();
                                     res.status(500).json(err.message);

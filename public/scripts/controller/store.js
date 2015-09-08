@@ -20,6 +20,7 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
 
 
     Stores.getStores({ Id: $stateParams.id, state: $scope.CurrentPage }, function (store) {
+        console.log(store)
         if (store.Channels.length > 0) {
             $scope.Channels = store.Channels;
             $scope.cmd_entity_type = store.Channels[0].cm_id;

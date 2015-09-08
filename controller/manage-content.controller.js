@@ -4,7 +4,7 @@ var async = require("async");
 exports.getmanagecontentdata = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     async.parallel({
                         ContentMasterList: function (callback) {
@@ -29,7 +29,7 @@ exports.getmanagecontentdata = function (req, res, next) {
                             }
                         },
                         UserRole: function (callback) {
-                            callback(null, req.session.UserRole);
+                            callback(null, req.session.icon_UserRole);
                         }
                     }, function (err, results) {
                         if (err) {
@@ -56,7 +56,7 @@ exports.getmanagecontentdata = function (req, res, next) {
 exports.addeditcontenttype = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_manage_content_type where  mct_parent_cnt_type_id = ?)cnt inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = cnt.mct_cnt_type_id and cd.contentname =?)', [req.body.parent_content_type, req.body.content_name], function (err, result) {
                         if (err) {
@@ -78,7 +78,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                         success: false,
                                         message: "Content Type must be Unique.",
                                         ContentList: [],
-                                        RoleUser: req.session.UserRole
+                                        RoleUser: req.session.icon_UserRole
                                     });
                                 }
                             }
@@ -133,7 +133,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                                                 success: true,
                                                                 message: "Content Type updated successfully.",
                                                                 ContentList: [],
-                                                                RoleUser: req.session.UserRole
+                                                                RoleUser: req.session.icon_UserRole
                                                             });
                                                         } else {
                                                             loop(cnt);
@@ -150,7 +150,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                         success: true,
                                         message: "Content Type updated successfully.",
                                         ContentList: [],
-                                        RoleUser: req.session.UserRole
+                                        RoleUser: req.session.icon_UserRole
                                     });
                                 }
 
@@ -281,7 +281,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                                                     success: true,
                                                                     message: "Content Type added successfully.",
                                                                     ContentList: ContentList,
-                                                                    RoleUser: req.session.UserRole
+                                                                    RoleUser: req.session.icon_UserRole
                                                                 });
                                                             }
                                                         });

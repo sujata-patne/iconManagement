@@ -7,11 +7,12 @@ var async = require("async");
 exports.getstoredata = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     async.parallel({
                         Channels: function (callback) {
-                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("Channel Distribution") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, Channels) {
+                            var query = connection_ikon_cms.query('select * from catalogue_detail as cd '+
+                                'inner join catalogue_master as cm on(cm.cm_id = cd.cd_cm_id) where cm_name in("Channel Distribution") ', function (err, Channels) {
                                 callback(err, Channels);
                             });
                         },
@@ -32,7 +33,7 @@ exports.getstoredata = function (req, res, next) {
                             }
                         },
                         UserRole: function (callback) {
-                            callback(null, req.session.UserRole);
+                            callback(null, req.session.icon_UserRole);
                         }
                     }, function (err, results) {
                         if (err) {
@@ -62,7 +63,7 @@ exports.getstoredata = function (req, res, next) {
 exports.AddEditStore = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     var query = connection_ikon_cms.query('select * from icn_login_detail where lower(ld_user_name) = ?', [req.body.store_email.toLowerCase()], function (err, result) {
                         if (err) {
@@ -156,12 +157,12 @@ exports.AddEditStore = function (req, res, next) {
                                     }
                                 }
                                 function EditStore() {
-                                    var query = connection_ikon_cms.query('UPDATE icn_store SET st_name=?,st_url=?,st_modified_on=?,st_modified_by=? WHERE st_id = ?', [req.body.store_name, req.body.store_site_url, new Date(), req.session.UserName, req.body.store_id], function (err, result) {
+                                    var query = connection_ikon_cms.query('UPDATE icn_store SET st_name=?,st_url=?,st_modified_on=?,st_modified_by=? WHERE st_id = ?', [req.body.store_name, req.body.store_site_url, new Date(), req.session.icon_UserName, req.body.store_id], function (err, result) {
                                         if (err) {
                                             connection_ikon_cms.release();
                                             res.status(500).json(err.message);
                                         } else {
-                                            var query = connection_ikon_cms.query('UPDATE icn_login_detail SET ld_user_id=?,ld_user_name=?,ld_email_id=?,ld_display_name=?,ld_mobile_no=?,ld_modified_on=?,ld_modified_by =? WHERE ld_id = ?', [req.body.store_email, req.body.store_email, req.body.store_email, req.body.store_contact_person, req.body.store_user_no, new Date(), req.session.UserName, req.body.store_ld_id], function (err, result) {
+                                            var query = connection_ikon_cms.query('UPDATE icn_login_detail SET ld_user_id=?,ld_user_name=?,ld_email_id=?,ld_display_name=?,ld_mobile_no=?,ld_modified_on=?,ld_modified_by =? WHERE ld_id = ?', [req.body.store_email, req.body.store_email, req.body.store_email, req.body.store_contact_person, req.body.store_user_no, new Date(), req.session.icon_UserName, req.body.store_ld_id], function (err, result) {
                                                 if (err) {
                                                     connection_ikon_cms.release();
                                                     res.status(500).json(err.message);
@@ -292,8 +293,8 @@ exports.AddEditStore = function (req, res, next) {
                                                                                     st_content_type: null,
                                                                                     st_created_on: new Date(),
                                                                                     st_modified_on: new Date(),
-                                                                                    st_created_by: req.session.UserName,
-                                                                                    st_modified_by: req.session.UserName
+                                                                                    st_created_by: req.session.icon_UserName,
+                                                                                    st_modified_by: req.session.icon_UserName
                                                                                 }
                                                                                 var query = connection_ikon_cms.query('INSERT INTO icn_store SET ?', store, function (err, result) {
                                                                                     if (err) {
@@ -321,9 +322,9 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                     ld_user_type: 'Store User',
                                                                                                     ld_last_login: new Date(),
                                                                                                     ld_created_on: new Date(),
-                                                                                                    ld_created_by: req.session.UserName,
+                                                                                                    ld_created_by: req.session.icon_UserName,
                                                                                                     ld_modified_on: new Date(),
-                                                                                                    ld_modified_by: req.session.UserName
+                                                                                                    ld_modified_by: req.session.icon_UserName
                                                                                                 };
                                                                                                 var query = connection_ikon_cms.query('INSERT INTO icn_login_detail SET ?', storeuser, function (err, result) {
                                                                                                     if (err) {
@@ -335,9 +336,9 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                             su_st_id: store_id,
                                                                                                             su_ld_id: ld_id,
                                                                                                             su_created_on: new Date(),
-                                                                                                            su_created_by: req.session.UserName,
+                                                                                                            su_created_by: req.session.icon_UserName,
                                                                                                             su_modified_on: new Date(),
-                                                                                                            su_modified_by: req.session.UserName
+                                                                                                            su_modified_by: req.session.icon_UserName
                                                                                                         };
                                                                                                         var query = connection_ikon_cms.query('INSERT INTO icn_store_user SET ?', storeusermapping, function (err, result) {
                                                                                                             if (err) {
@@ -429,8 +430,8 @@ exports.AddEditStore = function (req, res, next) {
                                                     st_content_type: null,
                                                     st_created_on: new Date(),
                                                     st_modified_on: new Date(),
-                                                    st_created_by: req.session.UserName,
-                                                    st_modified_by: req.session.UserName
+                                                    st_created_by: req.session.icon_UserName,
+                                                    st_modified_by: req.session.icon_UserName
                                                 }
                                                 var query = connection_ikon_cms.query('INSERT INTO icn_store SET ?', store, function (err, result) {
                                                     if (err) {
@@ -457,9 +458,9 @@ exports.AddEditStore = function (req, res, next) {
                                                                     ld_user_type: 'Store User',
                                                                     ld_last_login: new Date(),
                                                                     ld_created_on: new Date(),
-                                                                    ld_created_by: req.session.UserName,
+                                                                    ld_created_by: req.session.icon_UserName,
                                                                     ld_modified_on: new Date(),
-                                                                    ld_modified_by: req.session.UserName
+                                                                    ld_modified_by: req.session.icon_UserName
                                                                 };
                                                                 var query = connection_ikon_cms.query('INSERT INTO icn_login_detail SET ?', storeuser, function (err, result) {
                                                                     if (err) {
@@ -470,9 +471,9 @@ exports.AddEditStore = function (req, res, next) {
                                                                             su_st_id: store_id,
                                                                             su_ld_id: ld_id,
                                                                             su_created_on: new Date(),
-                                                                            su_created_by: req.session.UserName,
+                                                                            su_created_by: req.session.icon_UserName,
                                                                             su_modified_on: new Date(),
-                                                                            su_modified_by: req.session.UserName
+                                                                            su_modified_by: req.session.icon_UserName
                                                                         };
                                                                         var query = connection_ikon_cms.query('INSERT INTO icn_store_user SET ?', storeusermapping, function (err, result) {
                                                                             if (err) {

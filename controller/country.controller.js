@@ -5,7 +5,7 @@ var async = require("async");
 exports.getcountrydata = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     async.parallel({
                         CountryList: function (callback) {
@@ -24,7 +24,7 @@ exports.getcountrydata = function (req, res, next) {
                             });
                         },
                         UserRole: function (callback) {
-                            callback(null, req.session.UserRole);
+                            callback(null, req.session.icon_UserRole);
                         }
                     }, function (err, results) {
                         if (err) {
@@ -54,7 +54,7 @@ exports.getcountrydata = function (req, res, next) {
 exports.submitcountry = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
 
                     if (req.body.status == "NewGroup") {
@@ -69,7 +69,7 @@ exports.submitcountry = function (req, res, next) {
                                         message: 'Group Name must be Unique.',
                                         CountryGroups: [],
                                         CountryList: [],
-                                        RoleUser: req.session.UserRole
+                                        RoleUser: req.session.icon_UserRole
                                     });
                                 }
                                 else {
@@ -329,7 +329,7 @@ exports.submitcountry = function (req, res, next) {
                                                     MasterCountryList: MasterCountryList,
                                                     CountryGroups: CountryGroups,
                                                     CountryList: Countrys,
-                                                    RoleUser: req.session.UserRole
+                                                    RoleUser: req.session.icon_UserRole
                                                 });
                                             }
                                         });
