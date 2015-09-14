@@ -129,6 +129,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     }
 
     $scope.resetForm = function () {
+        location.reload();
         $scope.successvisible = false;
         $scope.errorvisible = false;
     }

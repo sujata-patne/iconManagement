@@ -73,6 +73,8 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
 
 
     $scope.resetForm = function () {
+        $scope.storeForm.$setPristine();
+        $scope.storeForm.$setValidity();
         $scope.successvisible = false;
         $scope.errorvisible = false;
     }
