@@ -94,7 +94,7 @@ exports.submitcountry = function (req, res, next) {
                                         res.status(500).json(err.message);
                                     } else {
                                         var icon_country = {
-                                            cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                            cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                             cd_cm_id: req.body.icon_content_type,
                                             cd_name: req.body.ChangedCountry[i].cd_name,
                                             cd_display_name: req.body.ChangedCountry[i].cd_name,
@@ -133,7 +133,7 @@ exports.submitcountry = function (req, res, next) {
                                         res.status(500).json(err.message);
                                     } else {
                                         var icon_country = {
-                                            cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                            cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                             cd_cm_id: req.body.content_group,
                                             cd_name: req.body.group_name,
                                             cd_display_name: req.body.group_name,
@@ -151,7 +151,7 @@ exports.submitcountry = function (req, res, next) {
                                                         connection_ikon_cms.release();
                                                         res.status(500).json(err.message);
                                                     } else {
-                                                        Groupid = result[0].id != null ? parseInt(result[0].id + 1) : 1
+                                                        Groupid = result[0].id != null ? (parseInt(result[0].id) + 1) : 1
                                                         var country_master_group = {
                                                             cm_id: Groupid,
                                                             cm_name: req.body.group_name
@@ -168,7 +168,7 @@ exports.submitcountry = function (req, res, next) {
                                                                         res.status(500).json(err.message);
                                                                     } else {
                                                                         var icon_country = {
-                                                                            cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                                            cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                                             cd_cm_id: req.body.icon_content_type,
                                                                             cd_name: req.body.group_name,
                                                                             cd_display_name: req.body.group_name,
@@ -190,7 +190,7 @@ exports.submitcountry = function (req, res, next) {
                                                                                             res.status(500).json(err.message);
                                                                                         } else {
                                                                                             var icon_country = {
-                                                                                                cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                                                                cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                                                                 cd_cm_id: Groupid,
                                                                                                 cd_name: req.body.AddCountryForGroup[i].cd_name,
                                                                                                 cd_display_name: req.body.AddCountryForGroup[i].cd_name,
@@ -243,7 +243,7 @@ exports.submitcountry = function (req, res, next) {
                                             res.status(500).json(err.message);
                                         } else {
                                             var icon_country = {
-                                                cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                 cd_cm_id: req.body.group_id,
                                                 cd_name: req.body.AddCountryForGroup[i].cd_name,
                                                 cd_display_name: req.body.AddCountryForGroup[i].cd_name,
