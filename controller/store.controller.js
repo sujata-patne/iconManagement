@@ -162,7 +162,7 @@ exports.AddEditStore = function (req, res, next) {
                                             connection_ikon_cms.release();
                                             res.status(500).json(err.message);
                                         } else {
-                                            var query = connection_ikon_cms.query('UPDATE icn_login_detail SET ld_user_id=?,ld_user_name=?,ld_email_id=?,ld_display_name=?,ld_mobile_no=?,ld_modified_on=?,ld_modified_by =? WHERE ld_id = ?', [req.body.store_email, req.body.store_email, req.body.store_email, req.body.store_contact_person, req.body.store_user_no, new Date(), req.session.icon_UserName, req.body.store_ld_id], function (err, result) {
+                                            var query = connection_ikon_cms.query('UPDATE icn_login_detail SET ld_user_id=?,ld_user_name=?,ld_email_id=?,ld_display_name=?,ld_mobile_no=?,ld_modified_on=?,ld_modified_by =? WHERE ld_id = ?', [req.body.store_email.split('@')[0], req.body.store_email, req.body.store_email, req.body.store_contact_person, req.body.store_user_no, new Date(), req.session.icon_UserName, req.body.store_ld_id], function (err, result) {
                                                 if (err) {
                                                     connection_ikon_cms.release();
                                                     res.status(500).json(err.message);
