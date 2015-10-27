@@ -11,10 +11,10 @@ exports.getstoredata = function (req, res, next) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     async.parallel({
                         Channels: function (callback) {
-                            var query = connection_ikon_cms.query('select * from catalogue_detail as cd '+
+                            var query = connection_ikon_cms.query('select * from catalogue_detail as cd ' +
                                 'inner join catalogue_master as cm on(cm.cm_id = cd.cd_cm_id) where cm_name in("Channel Distribution") ', function (err, Channels) {
-                                callback(err, Channels);
-                            });
+                                    callback(err, Channels);
+                                });
                         },
                         StoreList: function (callback) {
                             var storequery = req.body.state == "edit-store" ? "where st_id = " + req.body.Id : "";
@@ -178,7 +178,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                     res.status(500).json(err.message);
                                                                 } else {
                                                                     var metadata = {
-                                                                        cmd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                                        cmd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                                         cmd_group_id: req.body.store_front_type,
                                                                         cmd_entity_type: req.body.store_cmd_entity_type,
                                                                         cmd_entity_detail: req.body.AddStoreChannels[i]
@@ -251,7 +251,7 @@ exports.AddEditStore = function (req, res, next) {
                                                 connection_ikon_cms.release();
                                                 res.status(500).json(err.message);
                                             } else {
-                                                Groupid = result[0].id != null ? parseInt(result[0].id + 1) : 1
+                                                Groupid = result[0].id != null ? (parseInt(result[0].id) + 1) : 1
                                                 loop(0);
                                                 function loop(cnt) {
                                                     var i = cnt;
@@ -261,7 +261,7 @@ exports.AddEditStore = function (req, res, next) {
                                                             res.status(500).json(err.message);
                                                         } else {
                                                             var metadata = {
-                                                                cmd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                                cmd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                                 cmd_group_id: Groupid,
                                                                 cmd_entity_type: req.body.store_cmd_entity_type,
                                                                 cmd_entity_detail: req.body.AddStoreChannels[i]
@@ -280,7 +280,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                                 connection_ikon_cms.release();
                                                                                 res.status(500).json(err.message);
                                                                             } else {
-                                                                                var store_id = result[0].id != null ? parseInt(result[0].id + 1) : 1;
+                                                                                var store_id = result[0].id != null ? (parseInt(result[0].id) + 1) : 1;
                                                                                 var store = {
                                                                                     st_id: store_id,
                                                                                     st_name: req.body.store_name,
@@ -308,7 +308,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                 connection_ikon_cms.release();
                                                                                                 res.status(500).json(err.message);
                                                                                             } else {
-                                                                                                var ld_id = result[0].id != null ? parseInt(result[0].id + 1) : 1;
+                                                                                                var ld_id = result[0].id != null ? (parseInt(result[0].id) + 1) : 1;
                                                                                                 var storeuser = {
                                                                                                     ld_id: ld_id,
                                                                                                     ld_active: 1,
@@ -352,38 +352,38 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                                         res.status(500).json(err.message);
                                                                                                                     } else {
                                                                                                                         var smtpTransport = nodemailer.createTransport({
-                                                                                                                           service: "Gmail",
-                                                                                                                           auth: {
-                                                                                                                               user: "jetsynthesis@gmail.com",
-                                                                                                                               pass: "j3tsynthes1s"
-                                                                                                                           }
+                                                                                                                            service: "Gmail",
+                                                                                                                            auth: {
+                                                                                                                                user: "jetsynthesis@gmail.com",
+                                                                                                                                pass: "j3tsynthes1s"
+                                                                                                                            }
                                                                                                                         });
                                                                                                                         var Message = "<table style=\"border-collapse:collapse\" width=\"510\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tbody><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr>";
                                                                                                                         Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
                                                                                                                         Message += " </td></tr>";
                                                                                                                         Message += " <h5>Please find below login details : </h5>";
-                                                                                                                        Message += " <tr><td style=\"font-weight:bold;font-size:15px;color:#3d849b;\">Username : </td><td>"+req.body.store_email.split('@')[0]+"</td></tr>";
+                                                                                                                        Message += " <tr><td style=\"font-weight:bold;font-size:15px;color:#3d849b;\">Username : </td><td>" + req.body.store_email.split('@')[0] + "</td></tr>";
                                                                                                                         Message += " <tr><td style=\"font-weight:bold;font-size:15px;color:#3d849b;\">Temporary Password : </td><td>icon</td></tr>";
                                                                                                                         Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
                                                                                                                         Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://localhost:3000\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
                                                                                                                         Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
                                                                                                                         var mailOptions = {
-                                                                                                                           to: req.body.store_email,
-                                                                                                                           subject: 'New Store User',
-                                                                                                                           html: Message
+                                                                                                                            to: req.body.store_email,
+                                                                                                                            subject: 'New Store User',
+                                                                                                                            html: Message
                                                                                                                         }
                                                                                                                         smtpTransport.sendMail(mailOptions, function (error, response) {
-                                                                                                                           if (error) {
-                                                                                                                               console.log(error);
-                                                                                                                               res.end("error");
-                                                                                                                           } else {
+                                                                                                                            if (error) {
+                                                                                                                                console.log(error);
+                                                                                                                                res.end("error");
+                                                                                                                            } else {
                                                                                                                                 connection_ikon_cms.release();
                                                                                                                                 res.send({
                                                                                                                                     StoreList: StoreList,
                                                                                                                                     success: true,
                                                                                                                                     message: 'Store added successfully. Temprory Password sent to register store user email.'
                                                                                                                                 });
-                                                                                                                           }
+                                                                                                                            }
                                                                                                                         });
                                                                                                                     }
                                                                                                                 });
@@ -486,11 +486,11 @@ exports.AddEditStore = function (req, res, next) {
                                                                                         res.status(500).json(err.message);
                                                                                     } else {
                                                                                         var smtpTransport = nodemailer.createTransport({
-                                                                                           service: "Gmail",
-                                                                                           auth: {
-                                                                                               user: "jetsynthesis@gmail.com",
-                                                                                               pass: "j3tsynthes1s"
-                                                                                           }
+                                                                                            service: "Gmail",
+                                                                                            auth: {
+                                                                                                user: "jetsynthesis@gmail.com",
+                                                                                                pass: "j3tsynthes1s"
+                                                                                            }
                                                                                         });
                                                                                         var Message = "<table style=\"border-collapse:collapse\" width=\"510\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tbody><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr>";
                                                                                         Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
@@ -499,22 +499,22 @@ exports.AddEditStore = function (req, res, next) {
                                                                                         Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://localhost:3000\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
                                                                                         Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
                                                                                         var mailOptions = {
-                                                                                           to: req.body.store_email,
-                                                                                           subject: 'New Store User',
-                                                                                           html: Message
+                                                                                            to: req.body.store_email,
+                                                                                            subject: 'New Store User',
+                                                                                            html: Message
                                                                                         }
                                                                                         smtpTransport.sendMail(mailOptions, function (error, response) {
-                                                                                           if (error) {
-                                                                                               console.log(error);
-                                                                                               res.end("error");
-                                                                                           } else {
-                                                                                                         connection_ikon_cms.release();
-                                                                                                         res.send({
-                                                                                                                StoreList: StoreList,
-                                                                                                                success: true,
-                                                                                                                message: 'Store added successfully. Temprory Password sent to register store user email.'
-                                                                                                         });
-                                                                                           }
+                                                                                            if (error) {
+                                                                                                console.log(error);
+                                                                                                res.end("error");
+                                                                                            } else {
+                                                                                                connection_ikon_cms.release();
+                                                                                                res.send({
+                                                                                                    StoreList: StoreList,
+                                                                                                    success: true,
+                                                                                                    message: 'Store added successfully. Temprory Password sent to register store user email.'
+                                                                                                });
+                                                                                            }
                                                                                         });
                                                                                     }
                                                                                 });

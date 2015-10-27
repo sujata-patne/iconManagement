@@ -160,7 +160,7 @@ exports.updateassignright = function (req, res, next) {
                                             res.status(500).json(err.message);
                                         } else {
                                             var metadata = {
-                                                cmd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                cmd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                 cmd_group_id: groupid,
                                                 cmd_entity_type: req.body.store_content_type,
                                                 cmd_entity_detail: req.body.AddAssignRights[i].cmd_entity_detail
@@ -207,7 +207,7 @@ exports.updateassignright = function (req, res, next) {
                                             connection_ikon_cms.release();
                                             res.status(500).json(err.message);
                                         } else {
-                                            Groupid = result[0].id != null ? parseInt(result[0].id + 1) : 1
+                                            Groupid = result[0].id != null ? (parseInt(result[0].id) + 1) : 1
                                             SetGroupId(req.body.AddAssignRights[i].Type, Groupid);
 
                                             assingRightsManager.getLastInsertedMultiSelectMetaDataDetail(connection_ikon_cms, function (err, row) {
@@ -216,7 +216,7 @@ exports.updateassignright = function (req, res, next) {
                                                     res.status(500).json(err.message);
                                                 } else {
                                                     var metadata = {
-                                                        cmd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                        cmd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                         cmd_group_id: Groupid,
                                                         cmd_entity_type: req.body.store_content_type,
                                                         cmd_entity_detail: req.body.AddAssignRights[i].cmd_entity_detail

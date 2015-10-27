@@ -14,7 +14,7 @@ exports.getmanagecontentdata = function (req, res, next) {
                         },
                         ContentList: function (callback) {
                             var storequery = req.body.state == "edit-content" ? "where mct_id = " + req.body.Id : "";
-                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_manage_content_type)cnt inner join (select cd_id as parentid,cd_name as parentname from catalogue_detail)parent on(parent.parentid  = cnt.mct_parent_cnt_type_id) inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = cnt.mct_cnt_type_id)', function (err, ContentList) {
+                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_manage_content_type ' + storequery + ')cnt inner join (select cd_id as parentid,cd_name as parentname from catalogue_detail)parent on(parent.parentid  = cnt.mct_parent_cnt_type_id) inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = cnt.mct_cnt_type_id)', function (err, ContentList) {
                                 callback(err, ContentList);
                             });
                         },
@@ -115,7 +115,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                                 res.status(500).json(err.message);
                                             } else {
                                                 var metadata = {
-                                                    cmd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                    cmd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                     cmd_group_id: req.body.content_delivery_type,
                                                     cmd_entity_type: req.body.parent_content_type,
                                                     cmd_entity_detail: req.body.AddDeliveryType[i]
@@ -190,7 +190,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                     connection_ikon_cms.release();
                                     res.status(500).json(err.message);
                                 } else {
-                                    Groupid = result[0].id != null ? parseInt(result[0].id + 1) : 1
+                                    Groupid = result[0].id != null ? (parseInt(result[0].id) + 1) : 1
                                     loop(0);
                                     function loop(cnt) {
                                         var i = cnt;
@@ -200,7 +200,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                                 res.status(500).json(err.message);
                                             } else {
                                                 var deliverytype = {
-                                                    cmd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                    cmd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                     cmd_group_id: Groupid,
                                                     cmd_entity_type: req.body.parent_content_type,
                                                     cmd_entity_detail: req.body.AddDeliveryType[i]
@@ -237,7 +237,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                 connection_ikon_cms.release(); ;
                                 res.status(500).json(err.message);
                             } else {
-                                var cd_id = row[0].id != null ? parseInt(row[0].id + 1) : 1;
+                                var cd_id = row[0].id != null ? (parseInt(row[0].id) + 1) : 1;
                                 var contenttype = {
                                     cd_id: cd_id,
                                     cd_cm_id: null,
@@ -257,7 +257,7 @@ exports.addeditcontenttype = function (req, res, next) {
                                                 connection_ikon_cms.release(); ;
                                                 res.status(500).json(err.message);
                                             } else {
-                                                var mct_id = row[0].id != null ? parseInt(row[0].id + 1) : 1;
+                                                var mct_id = row[0].id != null ? (parseInt(row[0].id) + 1) : 1;
                                                 var managecontent = {
                                                     mct_id: mct_id,
                                                     mct_parent_cnt_type_id: req.body.parent_content_type,
