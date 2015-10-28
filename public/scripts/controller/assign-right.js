@@ -167,7 +167,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             AssignRights.UpdateAssignRights(store, function (data) {
                 if (data.success) {
                     $window.location.href = "#add-store";
-                    $scope.success = data.message;
+                    toastr.success(data.message);
                     $scope.successvisible = true;
                 }
                 else {
@@ -177,7 +177,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                 ngProgress.complete();
             }
             , function (error) {
-                $scope.error = error;
+                toastr.error(error);
                 $scope.errorvisible = true;
                 ngProgress.complete();
             });

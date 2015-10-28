@@ -115,23 +115,23 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
                             $scope.storeForm.$setPristine();
                             $scope.Stores.push(data.StoreList[0]);
                         }
-                        $scope.success = data.message;
+                        toastr.success(data.message);
                         $scope.successvisible = true;
                     }
                     else {
-                        $scope.error = data.message;
+                        toastr.error(data.message);
                         $scope.errorvisible = true;
                     }
                     ngProgress.complete();
                 }
                 , function (error) {
-                    $scope.error = error;
+                    toastr.error(error);
                     $scope.errorvisible = true;
                     ngProgress.complete();
                 });
             }
             else {
-                $scope.error = "Invalid Mobile No.";
+                toastr.error("Invalid Mobile No.");
                 $scope.errorvisible = true;
             }
         }
