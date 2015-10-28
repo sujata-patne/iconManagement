@@ -161,7 +161,7 @@ exports.AddEditStore = function (req, res, next) {
                                             res.status(500).json(err.message);
                                         } else {
                                             updateIcnLoginDetailsQuery = {
-                                                "ld_user_id" : req.body.store_email,
+                                                "ld_user_id" : req.body.store_email.split('@')[0],
                                                 "ld_user_name" : req.body.store_email,
                                                 "ld_email_id" : req.body.store_email,
                                                 "ld_display_name" : req.body.store_contact_person,
