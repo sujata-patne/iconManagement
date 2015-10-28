@@ -76,8 +76,8 @@ exports.updateIcnStore = function( dbconnection, updateQuery, storeId, callback 
 							'st_modified_by=? ' +
 						' WHERE ' +
 							'st_id = ?',
-					[ updateQuery.store_name,
-					  updateQuery.store_site_url,
+					[ updateQuery.st_name,
+					  updateQuery.st_url,
 					  updateQuery.st_modified_on,
 					  updateQuery.st_modified_by,
 					  storeId
@@ -148,3 +148,54 @@ exports.getLastInsertedMultiSelectMetaDataDetailByCmdGroupId = function( dbConne
 	);
 }
 
+exports.getLastInsertedStoreIdFromIcnStore = function( dbConnection, callback ) {
+	dbConnection.query('select max(st_id) as id from icn_store',
+		function ( err, result) {
+			callback( err, result );
+		}
+	);
+}
+
+exports.createIcnStore = function( dbConnection, storeData, callback ) {
+	dbConnection.query('INSERT INTO icn_store SET ?', storeData,
+		function ( err, result) {
+			callback( err, result );
+		}
+	);
+}
+
+exports.getLastInsertedIdFromIcnLoginDetail = function( dbConnection, callback ) {
+	dbConnection.query('select max(ld_id) as id from icn_login_detail',
+		function ( err, result) {
+			callback( err, result );
+		}
+	);
+}
+
+
+
+exports.createIcnLoginDetail = function( dbConnection, icnLoginDetail, callback ) {
+	dbConnection.query('INSERT INTO icn_login_detail SET ?', icnLoginDetail,
+		function ( err, result) {
+			callback( err, result );
+		}
+	);
+}
+
+exports.createIcnStoreUser = function( dbConnection, icnStoreUser, callback ) {
+	dbConnection.query('INSERT INTO icn_store_user SET ?', icnStoreUser,
+		function ( err, result) {
+			callback( err, result );
+		}
+	);
+}
+
+exports.getStoreListByStoreId = function( dbConnection, storeId, callback ) {
+	dbConnection.query('select * from (SELECT * FROM icn_store where st_id = ?)st ' +
+							'inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) ' +
+							'inner join(select * from icn_login_detail)ld on(su.su_ld_id  = ld.ld_id)', [storeId],
+		function ( err, storeList ) {
+			callback( err, storeList );
+		}
+	);
+}
