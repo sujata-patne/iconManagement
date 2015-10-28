@@ -1,6 +1,7 @@
 
 var mysql = require('../config/db').pool;
 var nodemailer = require('nodemailer');
+var userManager = require("../models/userModel");
 
 function getDate(val) {
     var d = new Date(val);
@@ -90,7 +91,7 @@ exports.logout = function (req, res, next) {
 exports.authenticate = function (req, res, next) {
     try {
         mysql.getConnection('CMS', function (err, connection_central) {
-            var query = connection_central.query('SELECT * FROM icn_login_detail where BINARY ld_user_id= ? and BINARY ld_user_pwd = ? ', [req.body.username, req.body.password], function (err, row, fields) {
+            userManager.getIcnLoginDetails(connection_central, req.body.username, req.body.password, function( err, row ) {
                 if (err) {
                     res.render('account-login', { error: 'Error in database connection.' });
                 } else {
@@ -105,7 +106,7 @@ exports.authenticate = function (req, res, next) {
                                 session.icon_FullName = row[0].ld_display_name;
                                 session.icon_lastlogin = row[0].ld_last_login;
                                 session.icon_UserType = row[0].ld_user_type;
-                                var query = connection_central.query('update  icn_login_detail set  ld_last_login = ? where ld_id =?', [new Date(), row[0].ld_id], function (err, row, fields) {
+                                userManager.updateIcnLoginDetails( connection_central, new Date, row[0].ld_id, function (err, row, fields) {
                                     if (err) {
                                         res.render('account-login', { error: 'Error in database connection.' });
                                     } else {
@@ -157,7 +158,7 @@ exports.viewForgotPassword = function (req, res, next) {
 exports.forgotPassword = function (req, res, next) {
     try {
         mysql.getConnection('CMS', function (err, connection_central) {
-            var query = connection_central.query('SELECT * FROM icn_login_detail where BINARY ld_user_id= ? and BINARY ld_email_id = ? ', [req.body.userid, req.body.emailid], function (err, row, fields) {
+            userManager.getUserDetailsByIdByEmailId( connection_central, req.body.userid, req.body.emailid, function( err, row, fields ) {
                 if (err) {
                     res.render('account-forgot', { error: 'Error in database connection.', msg: '' });
                 }
@@ -213,7 +214,7 @@ exports.changePassword = function (req, res) {
                 var session = req.session;
                 mysql.getConnection('CMS', function (err, connection_central) {
                     if (req.body.oldpassword == session.Password) {
-                        var query = connection_central.query('UPDATE icn_login_detail SET ld_user_pwd=?, ld_modified_on=? WHERE ld_id=?', [req.body.newpassword, new Date(), session.UserId], function (err, result) {
+                        userManager.updateUserDetails( connection_central, req.body.newpassword, new Date(), session.UserId, function (err, result) {
                             if (err) {
                                 connection_central.release();
                                 res.status(500).json(err.message);

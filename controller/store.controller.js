@@ -2,35 +2,28 @@
 var mysql = require('../config/db').pool;
 var nodemailer = require('nodemailer');
 var async = require("async");
-
-
+var storeManager = require("../models/storeModel");
+var userManager = require("../models/userModel");
 exports.getstoredata = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     async.parallel({
-                        Channels: function (callback) {
-                            var query = connection_ikon_cms.query('select * from catalogue_detail as cd ' +
-                                'inner join catalogue_master as cm on(cm.cm_id = cd.cd_cm_id) where cm_name in("Channel Distribution") ', function (err, Channels) {
-                                    callback(err, Channels);
-                                });
+                        Channels: function( callback ) {
+                            storeManager.getDistributionChannelList(connection_ikon_cms,function (err, Channels) {
+                                callback(err, Channels);
+                            });
                         },
                         StoreList: function (callback) {
-                            var storequery = req.body.state == "edit-store" ? "where st_id = " + req.body.Id : "";
-                            var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_store ' + storequery + ')st inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) inner join(select * from icn_login_detail)ld on(su.su_ld_id  = ld.ld_id)', function (err, StoreList) {
+                            storeManager.getStoreList(connection_ikon_cms, req.body.state, req.body.Id, function (err, StoreList) {
                                 callback(err, StoreList);
                             });
                         },
                         ChannelRights: function (callback) {
-                            if (req.body.state == "edit-store") {
-                                var query = connection_ikon_cms.query('select * from (select * from icn_store where st_id= ? )st inner join (select * from multiselect_metadata_detail ) mmd on (st.st_front_type=mmd.cmd_group_id) inner join(select * from catalogue_detail )cd on (cd.cd_id =mmd.cmd_entity_detail) inner join(select * from catalogue_master where cm_name = "Channel Distribution")cm on(cm.cm_id = cd_cm_id and mmd.cmd_entity_type = cm.cm_id)', [req.body.Id], function (err, ChannelRights) {
-                                    callback(err, ChannelRights);
-                                });
-                            }
-                            else {
-                                callback(null, []);
-                            }
+                            storeManager.getChannelRights(connection_ikon_cms, req.body.state, req.body.Id, function (err, ChannelRights) {
+                                callback(err, ChannelRights);
+                            });
                         },
                         UserRole: function (callback) {
                             callback(null, req.session.icon_UserRole);
@@ -65,7 +58,7 @@ exports.AddEditStore = function (req, res, next) {
         if (req.session) {
             if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-                    var query = connection_ikon_cms.query('select * from icn_login_detail where lower(ld_user_name) = ?', [req.body.store_email.toLowerCase()], function (err, result) {
+                    userManager.getIcnUserByEmailId( connection_ikon_cms, req.body.store_email.toLowerCase(), function( err, result) {
                         if (err) {
                             connection_ikon_cms.release();
                             res.status(500).json(err.message);
@@ -73,7 +66,7 @@ exports.AddEditStore = function (req, res, next) {
                         else {
                             if (result.length > 0) {
                                 if (result[0].ld_id == req.body.store_ld_id && req.body.state == "edit-store") {
-                                    var query = connection_ikon_cms.query('select * from icn_store where lower(st_url) = ?', [req.body.store_site_url.toLowerCase()], function (err, result) {
+                                    storeManager.getStoreDetailsByStoreSiteUrl( connection_ikon_cms, req.body.store_site_url.toLowerCase(), function( err, result ) {
                                         if (err) {
                                             connection_ikon_cms.release();
                                             res.status(500).json(err.message);
@@ -99,7 +92,7 @@ exports.AddEditStore = function (req, res, next) {
                                 }
                             }
                             else {
-                                var query = connection_ikon_cms.query('select * from icn_store where lower(st_url) = ?', [req.body.store_site_url.toLowerCase()], function (err, result) {
+                                storeManager.getStoreDetailsByStoreSiteUrl( connection_ikon_cms, req.body.store_site_url.toLowerCase(), function( err, result ) {
                                     if (err) {
                                         connection_ikon_cms.release();
                                         res.status(500).json(err.message);
@@ -124,7 +117,7 @@ exports.AddEditStore = function (req, res, next) {
 
 
                     function StoreCrud() {
-                        var query = connection_ikon_cms.query('select * from icn_store where lower(st_name) = ?', [req.body.store_name.toLowerCase()], function (err, result) {
+                        storeManager.getStoreByName( connection_ikon_cms, req.body.store_name.toLocaleLowerCase(), function( err, result ) {
                             if (err) {
                                 connection_ikon_cms.release();
                                 res.status(500).json(err.message);
@@ -151,18 +144,32 @@ exports.AddEditStore = function (req, res, next) {
                                         else {
                                             EditStore();
                                         }
-                                    }
-                                    else {
+                                    }else {
                                         AddStoreChannels();
                                     }
                                 }
                                 function EditStore() {
-                                    var query = connection_ikon_cms.query('UPDATE icn_store SET st_name=?,st_url=?,st_modified_on=?,st_modified_by=? WHERE st_id = ?', [req.body.store_name, req.body.store_site_url, new Date(), req.session.icon_UserName, req.body.store_id], function (err, result) {
+                                    var updateQuery = {
+                                        "st_name" : req.body.store_name,
+                                        "st_url" : req.body.store_site_url,
+                                        "st_modified_on" : new Date(),
+                                        "st_modified_by" : req.session.icon_UserName
+                                    }
+                                    storeManager.updateIcnStore( connection_ikon_cms, updateQuery, req.body.store_id, function( err, result ){
                                         if (err) {
                                             connection_ikon_cms.release();
                                             res.status(500).json(err.message);
                                         } else {
-                                            var query = connection_ikon_cms.query('UPDATE icn_login_detail SET ld_user_id=?,ld_user_name=?,ld_email_id=?,ld_display_name=?,ld_mobile_no=?,ld_modified_on=?,ld_modified_by =? WHERE ld_id = ?', [req.body.store_email, req.body.store_email, req.body.store_email, req.body.store_contact_person, req.body.store_user_no, new Date(), req.session.icon_UserName, req.body.store_ld_id], function (err, result) {
+                                            updateIcnLoginDetailsQuery = {
+                                                "ld_user_id" : req.body.store_email,
+                                                "ld_user_name" : req.body.store_email,
+                                                "ld_email_id" : req.body.store_email,
+                                                "ld_display_name" : req.body.store_contact_person,
+                                                "ld_mobile_no" : req.body.store_user_no,
+                                                "ld_modified_on" : new Date(),
+                                                "ld_modified_by" :req.session.icon_UserName
+                                            }
+                                            storeManager.updateIcnLoginDetails( connection_ikon_cms, updateIcnLoginDetailsQuery, req.body.store_ld_id, function( err, result ) {
                                                 if (err) {
                                                     connection_ikon_cms.release();
                                                     res.status(500).json(err.message);
@@ -172,7 +179,7 @@ exports.AddEditStore = function (req, res, next) {
                                                         loop(0);
                                                         function loop(cnt) {
                                                             var i = cnt;
-                                                            var query = connection_ikon_cms.query('select max(cmd_id) as id from multiselect_metadata_detail', function (err, row) {
+                                                            storeManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function( err, row ) {
                                                                 if (err) {
                                                                     connection_ikon_cms.release(); ;
                                                                     res.status(500).json(err.message);
@@ -183,7 +190,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                         cmd_entity_type: req.body.store_cmd_entity_type,
                                                                         cmd_entity_detail: req.body.AddStoreChannels[i]
                                                                     }
-                                                                    var query = connection_ikon_cms.query('INSERT INTO multiselect_metadata_detail SET ?', metadata, function (err, result) {
+                                                                    storeManager.createMultiSelectMetaDataDetail( connection_ikon_cms, metadata, function( err, result ){
                                                                         if (err) {
                                                                             connection_ikon_cms.release();
                                                                             res.status(500).json(err.message);
@@ -224,7 +231,7 @@ exports.AddEditStore = function (req, res, next) {
                                     var count = 0;
                                     deleteloop(count);
                                     function deleteloop(count) {
-                                        var query = connection_ikon_cms.query('DELETE FROM multiselect_metadata_detail WHERE cmd_group_id= ? and  cmd_entity_detail =?', [req.body.store_front_type, req.body.DeleteStoreChannels[count]], function (err, row, fields) {
+                                        storeManager.deleteMultiSelectMetaDataDetail( connection_ikon_cms, req.body.store_front_type, req.body.DeleteStoreChannels[count], function( err, rew, fields ) {
                                             if (err) {
                                                 connection_ikon_cms.release(); ;
                                                 res.status(500).json(err.message);
@@ -246,7 +253,7 @@ exports.AddEditStore = function (req, res, next) {
                                     var Groupid = 0;
                                     var storelength = req.body.AddStoreChannels.length;
                                     if (req.body.AddStoreChannels.length > 0) {
-                                        var query = connection_ikon_cms.query('select max(cmd_group_id) as id from multiselect_metadata_detail', function (err, result) {
+                                        storeManager.getLastInsertedMultiSelectMetaDataDetailByCmdGroupId( connection_ikon_cms, function( err, result ) {
                                             if (err) {
                                                 connection_ikon_cms.release();
                                                 res.status(500).json(err.message);
@@ -255,7 +262,7 @@ exports.AddEditStore = function (req, res, next) {
                                                 loop(0);
                                                 function loop(cnt) {
                                                     var i = cnt;
-                                                    var query = connection_ikon_cms.query('select max(cmd_id) as id from multiselect_metadata_detail', function (err, row) {
+                                                    storeManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function( err, result ) {
                                                         if (err) {
                                                             connection_ikon_cms.release(); ;
                                                             res.status(500).json(err.message);
@@ -266,7 +273,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                 cmd_entity_type: req.body.store_cmd_entity_type,
                                                                 cmd_entity_detail: req.body.AddStoreChannels[i]
                                                             }
-                                                            var query = connection_ikon_cms.query('INSERT INTO multiselect_metadata_detail SET ?', metadata, function (err, result) {
+                                                            storeManager.createMultiSelectMetaDataDetail( connection_ikon_cms, metadata, function( err, result ){
                                                                 if (err) {
                                                                     connection_ikon_cms.release();
                                                                     res.status(500).json(err.message);
@@ -275,6 +282,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                     cnt = cnt + 1;
                                                                     if (cnt == storelength) {
                                                                         // add store
+                                                                        
                                                                         var query = connection_ikon_cms.query('select max(st_id) as id from icn_store', function (err, result) {
                                                                             if (err) {
                                                                                 connection_ikon_cms.release();
