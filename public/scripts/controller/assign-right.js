@@ -9,15 +9,17 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     ngProgress.color('yellowgreen');
     ngProgress.height('3px');
     $scope.CurrentPage = $state.current.name;
+    $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'Subscriptions'},{'en_id':2, 'en_display_name':'One Time'}];
 
     AssignRights.GetAssignRights({ state: $scope.CurrentPage }, function (assignrights) {
 
         $scope.Stores = assignrights.Stores;
-        $scope.StoreChannels = assignrights.StoreChannels;
 
+        $scope.StoreChannels = assignrights.StoreChannels;
         $scope.AllContentTypes = assignrights.ContentTypes;
         $scope.AllCountrys = assignrights.Countrys;
-        $scope.AllPaymentTypes = assignrights.PaymentTypes;
+        /*As Payment types are not added in DB table, also fuse dev are manually adding 1 : Subscription and 2: One Time in respective table*/
+        //$scope.AllPaymentTypes = assignrights.PaymentTypes;
         $scope.AllPaymentChannels = assignrights.PaymentChannels;
         $scope.VendorCountry = assignrights.VendorCountry;
 
@@ -44,6 +46,50 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         $scope.errorvisible = true;
     });
 
+    $scope.$watch('SelectedStore',function(){
+        $scope.getJetPayDetailsByStoreId($scope.SelectedStore);
+    }, {},true);
+
+    $scope.$watch('SelectedGeoLocation',function(){
+        var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
+        var paymentchannels = _.filter($scope.jetPayDetials, function (channel) { return _.contains($scope.SelectedGeoLocation, channel.partner_cty_id) });
+        //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
+        var channelarray = [];
+console.log('paymentchannels')
+console.log(paymentchannels)
+        $scope.PaymentChannels = [];
+        _.each(paymentchannels, function (channel) {
+            console.log('paymentchannels')
+            console.log(channel.partner_id)
+            if (channelarray.indexOf(channel.country) == -1) {
+                channelarray.push(channel.partner_id);
+                $scope.PaymentChannels.push(channel);
+            }
+        });
+    }, {},true);
+
+    $scope.getJetPayDetailsByStoreId = function(storeId) {
+        AssignRights.getJetPayDetailsByStoreId(storeId, function (jetPayDetials) {
+            $scope.jetPayDetials = angular.copy(jetPayDetials);
+
+            var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
+            var paymentchannels = _.filter($scope.jetPayDetials, function (channel) {
+                return _.contains($scope.SelectedGeoLocation, channel.country) });
+                //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
+            var channelarray = [];
+
+
+            $scope.PaymentChannels = [];
+            _.each(paymentchannels, function (channel) {
+                if (channelarray.indexOf(channel.partner_id) == -1) {
+                    channelarray.push(channel.partner_id);
+                    $scope.PaymentChannels.push(channel);
+                }
+            });
+            console.log('$scope.PaymentChannels')
+            console.log(paymentchannels)
+        })
+    }
     $scope.storeChange = function () {
 
         var store = _.find($scope.Stores, function (store) { return store.st_id == $scope.SelectedStore });
@@ -96,7 +142,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                 $scope.Vendors.push(cnt);
             }
         });
-        var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
+        /*var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
         var paymentchannels = _.filter($scope.PartnerDistibutionChannels, function (channel) { return _.contains($scope.SelectedGeoLocation, channel.partner_cty_id) && _.contains(storechannels, channel.en_id) });
         var channelarray = [];
         $scope.PaymentChannels = [];
@@ -105,7 +151,8 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                 channelarray.push(channel.partner_id);
                 $scope.PaymentChannels.push(channel);
             }
-        });
+        });*/
+
     }
 
     function GetDeleteAssignRights(OldData, SelectedData, GroupId, type, DeleteArray) {

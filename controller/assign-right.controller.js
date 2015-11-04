@@ -20,7 +20,9 @@ exports.getassignrights = function (req, res, next) {
                                 });
                             },
                             PartnerDistibutionChannels: function (callback) {
-                                var query = connection_billing_gateway.query('select * from (SELECT * FROM billing_partner)bp inner join(select * from billing_entity_group)beg on(beg.eg_group_id =bp.partner_store_fronts) inner join(select * from billing_enum_data)enum on(enum.en_id =beg.eg_enum_id)', function (err, PartnerDistibutionChannels) {
+                                var query = connection_billing_gateway.query('select * from billing_partner AS bp ' +
+                                    'inner join billing_entity_group AS beg on (beg.eg_group_id =bp.partner_store_fronts) ' +
+                                    'inner join billing_enum_data AS enum on(enum.en_id =beg.eg_enum_id)', function (err, PartnerDistibutionChannels) {
                                     callback(err, PartnerDistibutionChannels);
                                 });
                             },
@@ -46,7 +48,10 @@ exports.getassignrights = function (req, res, next) {
                                 });
                             },
                             StoreChannels: function (callback) {
-                                var query = connection_ikon_cms.query('select * from (select * from icn_store)st inner join (select * from multiselect_metadata_detail ) mmd on (st.st_front_type=mmd.cmd_group_id) inner join(select * from catalogue_detail )cd on (cd.cd_id =mmd.cmd_entity_detail) inner join(select * from catalogue_master where cm_name = "Channel Distribution")cm on(cm.cm_id = cd_cm_id and mmd.cmd_entity_type = cm.cm_id)', function (err, StoreChannels) {
+                                var query = connection_ikon_cms.query('select * from icn_store AS st ' +
+                                    'inner join multiselect_metadata_detail AS mmd on (st.st_front_type=mmd.cmd_group_id) ' +
+                                    'inner join catalogue_detail AS cd on (cd.cd_id =mmd.cmd_entity_detail) ' +
+                                    'inner join catalogue_master AS cm on(cm.cm_id = cd_cm_id and mmd.cmd_entity_type = cm.cm_id)', function (err, StoreChannels) {
                                     callback(err, StoreChannels);
                                 });
                             },
@@ -79,6 +84,8 @@ exports.getassignrights = function (req, res, next) {
                                 callback(null, req.session.UserRole);
                             }
                         }, function (err, results) {
+                            console.log('results.PaymentTypes')
+                            console.log(results.PaymentTypes)
                             if (err) {
                                 connection_ikon_cms.release();
                                 res.status(500).json(err.message);

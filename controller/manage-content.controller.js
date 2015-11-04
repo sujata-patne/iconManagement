@@ -270,7 +270,10 @@ exports.addeditcontenttype = function (req, res, next) {
                                                         res.status(500).json(err.message);
                                                     }
                                                     else {
-                                                        var query = connection_ikon_cms.query('select * from (SELECT * FROM icn_manage_content_type where mct_id = ?)cnt inner join (select cd_id as parentid,cd_name as parentname from catalogue_detail)parent on(parent.parentid  = cnt.mct_parent_cnt_type_id) inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = cnt.mct_cnt_type_id)', [mct_id], function (err, ContentList) {
+                                                        var query = connection_ikon_cms.query('select * FROM icn_manage_content_type AS mct ' +
+                                                            'inner join (select cd_id as parentid,cd_name as parentname from catalogue_detail)parent on(parent.parentid  = mct.mct_parent_cnt_type_id) ' +
+                                                            'inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = mct.mct_cnt_type_id) where mct_id = ?', [mct_id], function (err, ContentList) {
+                                                            // 'select * from (SELECT * FROM icn_manage_content_type where mct_id = ?)cnt inner join (select cd_id as parentid,cd_name as parentname from catalogue_detail)parent on(parent.parentid  = cnt.mct_parent_cnt_type_id) inner join (select cd_id as contentid,cd_name as contentname from catalogue_detail)cd on(cd.contentid  = cnt.mct_cnt_type_id)
                                                             if (err) {
                                                                 connection_ikon_cms.release();
                                                                 res.status(500).json(err.message);
