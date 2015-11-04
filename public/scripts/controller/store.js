@@ -20,6 +20,7 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
 
 
     Stores.getStores({ Id: $stateParams.id, state: $scope.CurrentPage }, function (store) {
+        console.log(store)
         if (store.Channels.length > 0) {
             $scope.Channels = store.Channels;
             $scope.cmd_entity_type = store.Channels[0].cm_id;
@@ -72,6 +73,8 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
 
 
     $scope.resetForm = function () {
+        $scope.storeForm.$setPristine();
+        $scope.storeForm.$setValidity();
         $scope.successvisible = false;
         $scope.errorvisible = false;
     }
@@ -112,23 +115,23 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
                             $scope.storeForm.$setPristine();
                             $scope.Stores.push(data.StoreList[0]);
                         }
-                        $scope.success = data.message;
+                        toastr.success(data.message);
                         $scope.successvisible = true;
                     }
                     else {
-                        $scope.error = data.message;
+                        toastr.error(data.message);
                         $scope.errorvisible = true;
                     }
                     ngProgress.complete();
                 }
                 , function (error) {
-                    $scope.error = error;
+                    toastr.error(error);
                     $scope.errorvisible = true;
                     ngProgress.complete();
                 });
             }
             else {
-                $scope.error = "Invalid Mobile No.";
+                toastr.error("Invalid Mobile No.");
                 $scope.errorvisible = true;
             }
         }

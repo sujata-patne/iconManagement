@@ -247,16 +247,16 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                         if (country.success) {
                             $scope.CountryPageLoadData = country;
                             BindPageData($scope.CountryPageLoadData);
-                            $scope.success = country.message;
+                            toastr.success(country.message);
                             $scope.successvisible = true;
                         }
                         else {
-                            $scope.error = country.message;
+                            toastr.error(country.message);
                             $scope.errorvisible = true;
                         }
                         ngProgress.complete();
                     }, function (error) {
-                        $scope.error = error;
+                        toastr.error(error);
                         $scope.errorvisible = true;
                         ngProgress.complete();
                     });

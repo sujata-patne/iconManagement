@@ -176,6 +176,7 @@ console.log(paymentchannels)
     }
 
     $scope.resetForm = function () {
+        location.reload();
         $scope.successvisible = false;
         $scope.errorvisible = false;
     }
@@ -213,7 +214,7 @@ console.log(paymentchannels)
             AssignRights.UpdateAssignRights(store, function (data) {
                 if (data.success) {
                     $window.location.href = "#add-store";
-                    $scope.success = data.message;
+                    toastr.success(data.message);
                     $scope.successvisible = true;
                 }
                 else {
@@ -223,7 +224,7 @@ console.log(paymentchannels)
                 ngProgress.complete();
             }
             , function (error) {
-                $scope.error = error;
+                toastr.error(error);
                 $scope.errorvisible = true;
                 ngProgress.complete();
             });

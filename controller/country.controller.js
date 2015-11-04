@@ -1,30 +1,30 @@
 
 var mysql = require('../config/db').pool;
 var async = require("async");
-
+var countryManager = require("../models/countryModel");
 exports.getcountrydata = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     async.parallel({
                         CountryList: function (callback) {
-                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, CountryList) {
-                                callback(err, CountryList);
+                            countryManager.getCountryList(connection_ikon_cms, function( err, CountryList ) {
+                                callback( err, CountryList );
                             });
                         },
                         CountryGroups: function (callback) {
-                            var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("country_group") )cm on(cm.cm_id = cd.cd_cm_id) inner join(select * from catalogue_master  )cm_group on(cm_group.cm_name = cd.cd_name) inner join(select * from catalogue_detail )cd_group on(cd_group.cd_cm_id = cm_group.cm_id)', function (err, CountryGroups) {
-                                callback(err, CountryGroups);
+                            countryManager.getCountryGroups(connection_ikon_cms, function( err, CountryGroups ) {
+                                callback( err, CountryGroups );
                             });
                         },
                         MasterCountryList: function (callback) {
-                            var query = connection_ikon_cms.query('select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location")', function (err, MasterCountryList) {
+                            countryManager.getMasterCountryList(connection_ikon_cms,function (err, MasterCountryList) {
                                 callback(err, MasterCountryList);
                             });
                         },
                         UserRole: function (callback) {
-                            callback(null, req.session.UserRole);
+                            callback(null, req.session.icon_UserRole);
                         }
                     }, function (err, results) {
                         if (err) {
@@ -54,11 +54,11 @@ exports.getcountrydata = function (req, res, next) {
 exports.submitcountry = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
 
                     if (req.body.status == "NewGroup") {
-                        var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail  where lower(cd_name) =?)cd inner join(select * from catalogue_master where cm_name in("country_group") )cm on(cm.cm_id = cd.cd_cm_id)', [req.body.group_name.toLowerCase()], function (err, row) {
+                        countryManager.getCountryGroupByGroupName(connection_ikon_cms, req.body.group_name.toLowerCase(), function( err, result ) {
                             if (err) {
                                 connection_ikon_cms.release(); ;
                                 res.status(500).json(err.message);
@@ -69,7 +69,7 @@ exports.submitcountry = function (req, res, next) {
                                         message: 'Group Name must be Unique.',
                                         CountryGroups: [],
                                         CountryList: [],
-                                        RoleUser: req.session.UserRole
+                                        RoleUser: req.session.icon_UserRole
                                     });
                                 }
                                 else {
@@ -88,20 +88,20 @@ exports.submitcountry = function (req, res, next) {
                             changeloop(0);
                             function changeloop(cnt) {
                                 var i = cnt;
-                                var query = connection_ikon_cms.query('select max(cd_id) as id from catalogue_detail', function (err, row) {
+                                countryManager.getLastInsertedCatalogueId( connection_ikon_cms, function( err, row ) {
                                     if (err) {
                                         connection_ikon_cms.release(); ;
                                         res.status(500).json(err.message);
                                     } else {
                                         var icon_country = {
-                                            cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                            cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                             cd_cm_id: req.body.icon_content_type,
                                             cd_name: req.body.ChangedCountry[i].cd_name,
                                             cd_display_name: req.body.ChangedCountry[i].cd_name,
                                             cd_desc: null,
                                             cd_desc1: null
                                         }
-                                        var query = connection_ikon_cms.query('INSERT INTO catalogue_detail SET ?', icon_country, function (err, result) {
+                                        countryManager.createCatalogDetailForCountry( connection_ikon_cms, icon_country, function (err, result) {
                                             if (err) {
                                                 connection_ikon_cms.release();
                                                 res.status(500).json(err.message);
@@ -127,55 +127,55 @@ exports.submitcountry = function (req, res, next) {
                         if (req.body.status == "NewGroup") {
                             var storelength = req.body.AddCountryForGroup.length;
                             if (req.body.AddCountryForGroup.length > 0) {
-                                var query = connection_ikon_cms.query('select max(cd_id) as id from catalogue_detail', function (err, row) {
+                                countryManager.getLastInsertedCatalogueId(connection_ikon_cms, function( err, row ) {
                                     if (err) {
                                         connection_ikon_cms.release(); ;
                                         res.status(500).json(err.message);
                                     } else {
                                         var icon_country = {
-                                            cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                            cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                             cd_cm_id: req.body.content_group,
                                             cd_name: req.body.group_name,
                                             cd_display_name: req.body.group_name,
                                             cd_desc: null,
                                             cd_desc1: null
                                         }
-                                        var query = connection_ikon_cms.query('INSERT INTO catalogue_detail SET ?', icon_country, function (err, result) {
+                                        countryManager.createCatalogDetailForCountry( connection_ikon_cms, icon_country, function (err, result) {
                                             if (err) {
                                                 connection_ikon_cms.release();
                                                 res.status(500).json(err.message);
                                             }
                                             else {
-                                                var query = connection_ikon_cms.query('select max(cm_id) as id from catalogue_master', function (err, result) {
+                                                countryManager.getLastInsertedIdFromCatalogMaster( connection_ikon_cms, function( err, result ) {
                                                     if (err) {
                                                         connection_ikon_cms.release();
                                                         res.status(500).json(err.message);
                                                     } else {
-                                                        Groupid = result[0].id != null ? parseInt(result[0].id + 1) : 1
+                                                        Groupid = result[0].id != null ? (parseInt(result[0].id) + 1) : 1
                                                         var country_master_group = {
                                                             cm_id: Groupid,
                                                             cm_name: req.body.group_name
                                                         }
-                                                        var query = connection_ikon_cms.query('INSERT INTO catalogue_master SET ?', country_master_group, function (err, result) {
+                                                        countryManager.createCountryMasterGroup( connection_ikon_cms, country_master_group, function(err, result ) {
                                                             if (err) {
                                                                 connection_ikon_cms.release();
                                                                 res.status(500).json(err.message);
                                                             }
                                                             else {
-                                                                var query = connection_ikon_cms.query('select max(cd_id) as id from catalogue_detail', function (err, row) {
+                                                                countryManager.getLastInsertedCatalogueId(connection_ikon_cms, function(err, row ) {
                                                                     if (err) {
-                                                                        connection_ikon_cms.release(); ;
+                                                                        connection_ikon_cms.release();
                                                                         res.status(500).json(err.message);
                                                                     } else {
                                                                         var icon_country = {
-                                                                            cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                                            cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                                             cd_cm_id: req.body.icon_content_type,
                                                                             cd_name: req.body.group_name,
                                                                             cd_display_name: req.body.group_name,
                                                                             cd_desc: null,
                                                                             cd_desc1: null
                                                                         }
-                                                                        var query = connection_ikon_cms.query('INSERT INTO catalogue_detail SET ?', icon_country, function (err, result) {
+                                                                        countryManager.createCatalogDetailForCountry( connection_ikon_cms, icon_country, function( err, result ){
                                                                             if (err) {
                                                                                 connection_ikon_cms.release();
                                                                                 res.status(500).json(err.message);
@@ -184,20 +184,20 @@ exports.submitcountry = function (req, res, next) {
                                                                                 addloop(0);
                                                                                 function addloop(cnt) {
                                                                                     var i = cnt;
-                                                                                    var query = connection_ikon_cms.query('select max(cd_id) as id from catalogue_detail', function (err, row) {
+                                                                                    countryManager.getLastInsertedCatalogueId(connection_ikon_cms, function( err, row ) {
                                                                                         if (err) {
                                                                                             connection_ikon_cms.release(); ;
                                                                                             res.status(500).json(err.message);
                                                                                         } else {
                                                                                             var icon_country = {
-                                                                                                cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                                                                cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                                                                 cd_cm_id: Groupid,
                                                                                                 cd_name: req.body.AddCountryForGroup[i].cd_name,
                                                                                                 cd_display_name: req.body.AddCountryForGroup[i].cd_name,
                                                                                                 cd_desc: null,
                                                                                                 cd_desc1: null
                                                                                             }
-                                                                                            var query = connection_ikon_cms.query('INSERT INTO catalogue_detail SET ?', icon_country, function (err, result) {
+                                                                                            countryManager.createCatalogDetailForCountry(connection_ikon_cms, icon_country, function( err, result ) {
                                                                                                 if (err) {
                                                                                                     connection_ikon_cms.release();
                                                                                                     res.status(500).json(err.message);
@@ -237,20 +237,20 @@ exports.submitcountry = function (req, res, next) {
                                 updateloop(0);
                                 function updateloop(cnt) {
                                     var i = cnt;
-                                    var query = connection_ikon_cms.query('select max(cd_id) as id from catalogue_detail', function (err, row) {
+                                    countryManager.getLastInsertedCatalogueId( connection_ikon_cms, function( err, row ) {
                                         if (err) {
                                             connection_ikon_cms.release(); ;
                                             res.status(500).json(err.message);
                                         } else {
                                             var icon_country = {
-                                                cd_id: row[0].id != null ? parseInt(row[0].id + 1) : 1,
+                                                cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                 cd_cm_id: req.body.group_id,
                                                 cd_name: req.body.AddCountryForGroup[i].cd_name,
                                                 cd_display_name: req.body.AddCountryForGroup[i].cd_name,
                                                 cd_desc: null,
                                                 cd_desc1: null
                                             }
-                                            var query = connection_ikon_cms.query('INSERT INTO catalogue_detail SET ?', icon_country, function (err, result) {
+                                            countryManager.createCatalogDetailForCountry(connection_ikon_cms, icon_country, function( err, result ) {
                                                 if (err) {
                                                     connection_ikon_cms.release();
                                                     res.status(500).json(err.message);
@@ -282,7 +282,7 @@ exports.submitcountry = function (req, res, next) {
                             var count = 0;
                             deleteloop(count);
                             function deleteloop(i) {
-                                var query = connection_ikon_cms.query('DELETE FROM catalogue_detail WHERE cd_id= ? and  cd_cm_id =?', [req.body.DeleteCountryForGroup[i].cd_id, req.body.group_id], function (err, row, fields) {
+                                countryManager.deleteCountryByGroupId( connection_ikon_cms, req.body.DeleteCountryForGroup[i].cd_id, req.body.group_id, function( err, row, fields ) {
                                     if (err) {
                                         connection_ikon_cms.release(); ;
                                         res.status(500).json(err.message);
@@ -304,19 +304,19 @@ exports.submitcountry = function (req, res, next) {
                         }
                     }
                     function GetAllReturnData() {
-                        var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)', function (err, Countrys) {
+                        countryManager.getCountries( connection_ikon_cms, function( err, Countrys ) {
                             if (err) {
                                 connection_ikon_cms.release();
                                 res.status(500).json(err.message);
                             }
                             else {
-                                var query = connection_ikon_cms.query('select * from (SELECT * FROM catalogue_detail)cd inner join(select * from catalogue_master where cm_name in("country_group") )cm on(cm.cm_id = cd.cd_cm_id) inner join(select * from catalogue_master  )cm_group on(cm_group.cm_name = cd.cd_name) inner join(select * from catalogue_detail )cd_group on(cd_group.cd_cm_id = cm_group.cm_id)', function (err, CountryGroups) {
+                                countryManager.getCountryGroups( connection_ikon_cms, function( err, CountryGroups ) {
                                     if (err) {
                                         connection_ikon_cms.release();
                                         res.status(500).json(err.message);
                                     }
                                     else {
-                                        var query = connection_ikon_cms.query('select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location")', function (err, MasterCountryList) {
+                                        countryManager.getMasterCountryList( connection_ikon_cms, function( err, MasterCountryList ) {
                                             if (err) {
                                                 connection_ikon_cms.release();
                                                 res.status(500).json(err.message);
@@ -329,7 +329,7 @@ exports.submitcountry = function (req, res, next) {
                                                     MasterCountryList: MasterCountryList,
                                                     CountryGroups: CountryGroups,
                                                     CountryList: Countrys,
-                                                    RoleUser: req.session.UserRole
+                                                    RoleUser: req.session.icon_UserRole
                                                 });
                                             }
                                         });

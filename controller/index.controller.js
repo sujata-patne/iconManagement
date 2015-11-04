@@ -1,6 +1,7 @@
 
 var mysql = require('../config/db').pool;
 var nodemailer = require('nodemailer');
+var userManager = require("../models/userModel");
 
 function getDate(val) {
     var d = new Date(val);
@@ -38,10 +39,10 @@ exports.pages = function (req, res, next) {
     ];
 
     if (req.session) {
-        if (req.session.UserName) {
-            role = req.session.UserRole;
+        if (req.session.icon_UserName) {
+            role = req.session.icon_UserRole;
             var pageData = getPages(role);
-            res.render('index', { title: 'Express', username: req.session.FullName, Pages: pageData, userrole: req.session.UserType, lastlogin: " " + getDate(req.session.lastlogin) + " " + getTime(req.session.lastlogin) });
+            res.render('index', { title: 'Express', username: req.session.icon_FullName, Pages: pageData, userrole: req.session.icon_UserType, lastlogin: " " + getDate(req.session.icon_lastlogin) + " " + getTime(req.session.icon_lastlogin) });
         }
         else {
             res.redirect('/accountlogin');
@@ -54,7 +55,7 @@ exports.pages = function (req, res, next) {
 
 exports.login = function (req, res, next) {
     if (req.session) {
-        if (req.session.UserName) {
+        if (req.session.icon_UserName) {
             res.redirect("/#/plan-list");
         }
         else {
@@ -69,7 +70,7 @@ exports.login = function (req, res, next) {
 exports.logout = function (req, res, next) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 req.session = null;
                 res.redirect('/accountlogin');
             }
@@ -90,7 +91,7 @@ exports.logout = function (req, res, next) {
 exports.authenticate = function (req, res, next) {
     try {
         mysql.getConnection('CMS', function (err, connection_central) {
-            var query = connection_central.query('SELECT * FROM icn_login_detail where BINARY ld_user_id= ? and BINARY ld_user_pwd = ? ', [req.body.username, req.body.password], function (err, row, fields) {
+            userManager.getIcnLoginDetails(connection_central, req.body.username, req.body.password, function( err, row ) {
                 if (err) {
                     res.render('account-login', { error: 'Error in database connection.' });
                 } else {
@@ -98,14 +99,14 @@ exports.authenticate = function (req, res, next) {
                         if (row[0].ld_active == 1) {
                             if (row[0].ld_user_type == "Store Admin") {
                                 var session = req.session;
-                                session.UserId = row[0].ld_id;
-                                session.UserRole = row[0].ld_role;
-                                session.UserName = req.body.username;
+                                session.icon_UserId = row[0].ld_id;
+                                session.icon_UserRole = row[0].ld_role;
+                                session.icon_UserName = req.body.username;
                                 session.Password = req.body.password;
-                                session.FullName = row[0].ld_display_name;
-                                session.lastlogin = row[0].ld_last_login;
-                                session.UserType = row[0].ld_user_type;
-                                var query = connection_central.query('update  icn_login_detail set  ld_last_login = ? where ld_id =?', [new Date(), row[0].ld_id], function (err, row, fields) {
+                                session.icon_FullName = row[0].ld_display_name;
+                                session.icon_lastlogin = row[0].ld_last_login;
+                                session.icon_UserType = row[0].ld_user_type;
+                                userManager.updateIcnLoginDetails( connection_central, new Date, row[0].ld_id, function (err, row, fields) {
                                     if (err) {
                                         res.render('account-login', { error: 'Error in database connection.' });
                                     } else {
@@ -125,7 +126,17 @@ exports.authenticate = function (req, res, next) {
                         }
                     } else {
                         connection_central.release();
-                        res.render('account-login', { error: 'Invalid Username / Password.' });
+                        if( req.body.username.length == 0  &&  req.body.password.length == 0 ) {
+                            res.render('account-login', {error: 'Please enter username and password.'});
+                        }else if(req.body.username.length != 0  &&  req.body.password.length == 0 ){
+                            res.render('account-login', {error: 'Please enter password.'});
+                        }
+                        else if(req.body.username.length == 0  &&  req.body.password.length != 0){
+                            res.render('account-login', {error: 'Please enter username.'});
+                        }
+                        else {
+                            res.render('account-login', {error: 'Invalid Username / Password.'});
+                        }
                     }
                 }
             });
@@ -157,7 +168,7 @@ exports.viewForgotPassword = function (req, res, next) {
 exports.forgotPassword = function (req, res, next) {
     try {
         mysql.getConnection('CMS', function (err, connection_central) {
-            var query = connection_central.query('SELECT * FROM icn_login_detail where BINARY ld_user_id= ? and BINARY ld_email_id = ? ', [req.body.userid, req.body.emailid], function (err, row, fields) {
+            userManager.getUserDetailsByIdByEmailId( connection_central, req.body.userid, req.body.emailid, function( err, row, fields ) {
                 if (err) {
                     res.render('account-forgot', { error: 'Error in database connection.', msg: '' });
                 }
@@ -209,11 +220,11 @@ exports.viewChangePassword = function (req, res, next) {
 exports.changePassword = function (req, res) {
     try {
         if (req.session) {
-            if (req.session.UserName) {
+            if (req.session.icon_UserName) {
                 var session = req.session;
                 mysql.getConnection('CMS', function (err, connection_central) {
                     if (req.body.oldpassword == session.Password) {
-                        var query = connection_central.query('UPDATE icn_login_detail SET ld_user_pwd=?, ld_modified_on=? WHERE ld_id=?', [req.body.newpassword, new Date(), session.UserId], function (err, result) {
+                        userManager.updateUserDetails( connection_central, req.body.newpassword, new Date(), session.UserId, function (err, result) {
                             if (err) {
                                 connection_central.release();
                                 res.status(500).json(err.message);
