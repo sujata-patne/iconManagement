@@ -52,18 +52,15 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
 
     $scope.$watch('SelectedGeoLocation',function(){
         var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
-        var paymentchannels = _.filter($scope.jetPayDetials, function (channel) { return _.contains($scope.SelectedGeoLocation, channel.partner_cty_id) });
+        var paymentchannels = _.filter($scope.jetPayDetials, function (channel) {
+            return _.contains($scope.SelectedGeoLocation, channel.country) });
         //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
         var channelarray = [];
-console.log('paymentchannels')
-console.log(paymentchannels)
         $scope.PaymentChannels = [];
         _.each(paymentchannels, function (channel) {
-            console.log('paymentchannels')
-            console.log(channel.partner_id)
             if (channelarray.indexOf(channel.country) == -1) {
                 channelarray.push(channel.partner_id);
-                $scope.PaymentChannels.push(channel);
+                $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
             }
         });
     }, {},true);
@@ -77,17 +74,13 @@ console.log(paymentchannels)
                 return _.contains($scope.SelectedGeoLocation, channel.country) });
                 //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
             var channelarray = [];
-
-
             $scope.PaymentChannels = [];
             _.each(paymentchannels, function (channel) {
                 if (channelarray.indexOf(channel.partner_id) == -1) {
                     channelarray.push(channel.partner_id);
-                    $scope.PaymentChannels.push(channel);
+                    $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
                 }
             });
-            console.log('$scope.PaymentChannels')
-            console.log(paymentchannels)
         })
     }
     $scope.storeChange = function () {
