@@ -9,7 +9,17 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     ngProgress.color('yellowgreen');
     ngProgress.height('3px');
     $scope.CurrentPage = $state.current.name;
-    $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'Subscriptions'},{'en_id':2, 'en_display_name':'One Time'}];
+
+    AssignRights.getPricePointType(function (paymentTypes){
+        console.log(paymentTypes);
+            if(paymentTypes && paymentTypes.length > 0){
+                $scope.AllPaymentTypes = angular.copy(paymentTypes);
+            }else{
+                $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'Subscriptions'},{'en_id':2, 'en_display_name':'One Time'}];
+            }
+        },function(error){
+            console.log(error);
+        });
 
     AssignRights.GetAssignRights({ state: $scope.CurrentPage }, function (assignrights) {
 
