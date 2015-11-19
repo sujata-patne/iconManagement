@@ -1,7 +1,0 @@
-dist
-.tmp
-.sass-cache
-.idea
-/env.json
-/npm-debug.log
-/app.js
