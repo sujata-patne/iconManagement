@@ -93,7 +93,6 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                     return _.contains($scope.SelectedGeoLocation, channel.country)
                 }
             });
-
                 //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
             var channelarray = [];
             $scope.PaymentChannels = [];
