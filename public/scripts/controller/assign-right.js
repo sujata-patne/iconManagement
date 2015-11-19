@@ -57,7 +57,9 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     });
 
     $scope.$watch('SelectedStore',function(){
-        $scope.getJetPayDetailsByStoreId($scope.SelectedStore);
+        if($scope.SelectedStore != undefined && $scope.SelectedStore != '' && $scope.SelectedStore != null){
+            $scope.getJetPayDetailsByStoreId($scope.SelectedStore);
+        }
     }, {},true);
 
     $scope.$watch('SelectedGeoLocation',function(){
