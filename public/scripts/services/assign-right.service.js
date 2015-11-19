@@ -5,7 +5,6 @@ myApp.service('AssignRights', ['$http', function ($http) {
     service.getPricePointType = function(success,error){
         $http.get('http://103.43.2.10/BillingUtilService/GetEnumDetails?Type=payment_type')
         .success(function (items) {
-            console.log(items)
             success(items);
         }).error(function (err) {
             error(err);

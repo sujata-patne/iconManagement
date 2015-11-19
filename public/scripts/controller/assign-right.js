@@ -15,7 +15,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             if(paymentTypes && paymentTypes.length > 0){
                 $scope.AllPaymentTypes = angular.copy(paymentTypes);
             }else{
-                $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'Subscriptions'},{'en_id':2, 'en_display_name':'One Time'}];
+                $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'One Time'},{'en_id':2, 'en_display_name':'Subscription'}];
             }
         },function(error){
             console.log(error);
@@ -65,16 +65,21 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     $scope.$watch('SelectedGeoLocation',function(){
         var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
         var paymentchannels = _.filter($scope.jetPayDetials, function (channel) {
-            return _.contains($scope.SelectedGeoLocation, channel.country) });
+            if(channel.country != null) {
+                return _.contains($scope.SelectedGeoLocation, channel.country)
+            }
+        });
         //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
+
         var channelarray = [];
         $scope.PaymentChannels = [];
         _.each(paymentchannels, function (channel) {
-            if (channelarray.indexOf(channel.country) == -1) {
+            if (channelarray.indexOf(channel.country) === -1) {
                 channelarray.push(channel.partner_id);
                 $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
             }
         });
+
     }, {},true);
 
     $scope.getJetPayDetailsByStoreId = function(storeId) {
@@ -82,17 +87,23 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.jetPayDetials = angular.copy(jetPayDetials);
 
             var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
+
             var paymentchannels = _.filter($scope.jetPayDetials, function (channel) {
-                return _.contains($scope.SelectedGeoLocation, channel.country) });
+                if(channel.country != null) {
+                    return _.contains($scope.SelectedGeoLocation, channel.country)
+                }
+            });
+
                 //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
             var channelarray = [];
             $scope.PaymentChannels = [];
             _.each(paymentchannels, function (channel) {
-                if (channelarray.indexOf(channel.partner_id) == -1) {
+                if (channelarray.indexOf(channel.partner_id) === -1) {
                     channelarray.push(channel.partner_id);
                     $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
                 }
             });
+
         })
     }
     $scope.storeChange = function () {

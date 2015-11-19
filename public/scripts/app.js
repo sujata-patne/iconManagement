@@ -3,6 +3,29 @@
 */
 var myApp = angular.module('myApp', ['ui.bootstrap', 'ui.router', 'ngProgress', 'underscore']);
 
+myApp.filter('number', [function() {
+    return function(input) {
+        return parseInt(input, 10);
+    };
+}]);
+
+toastr.options = {
+    "closeButton": false,
+    "debug": false,
+    "newestOnTop": false,
+    "progressBar": false,
+    "positionClass": "toast-top-center",
+    "preventDuplicates": false,
+    "onclick": null,
+    "showDuration": "300",
+    "hideDuration": "1000",
+    "timeOut": "5000",
+    "extendedTimeOut": "1000",
+    "showEasing": "swing",
+    "hideEasing": "linear",
+    "showMethod": "fadeIn",
+    "hideMethod": "fadeOut"
+}
 myApp.config(function ($stateProvider) {
     $stateProvider
 
