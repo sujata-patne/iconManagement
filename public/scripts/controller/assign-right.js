@@ -9,17 +9,16 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     ngProgress.color('yellowgreen');
     ngProgress.height('3px');
     $scope.CurrentPage = $state.current.name;
-
+    $scope.jetPayDetials = [];
     AssignRights.getPricePointType(function (paymentTypes){
-        console.log(paymentTypes);
-            if(paymentTypes && paymentTypes.length > 0){
-                $scope.AllPaymentTypes = angular.copy(paymentTypes);
-            }else{
-                $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'One Time'},{'en_id':2, 'en_display_name':'Subscription'}];
-            }
-        },function(error){
-            console.log(error);
-        });
+        if(paymentTypes && paymentTypes.length > 0){
+            $scope.AllPaymentTypes = angular.copy(paymentTypes);
+        }else{
+            $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'Subscription'},{'en_id':2, 'en_display_name':'One Time'}];
+        }
+    },function(error){
+        console.log(error);
+    });
 
     AssignRights.GetAssignRights({ state: $scope.CurrentPage }, function (assignrights) {
 
@@ -48,6 +47,10 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         }
         if ($scope.CurrentPage == "assign-right-manage") {
             $scope.SelectedStore = parseInt($stateParams.id);
+
+            $scope.getJetPayDetailsForAlaCart($scope.SelectedStore);
+            $scope.getJetPayDetailsForSubscription($scope.SelectedStore);
+
             $scope.storeChange();
         }
 
@@ -58,53 +61,61 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
 
     $scope.$watch('SelectedStore',function(){
         if($scope.SelectedStore != undefined && $scope.SelectedStore != '' && $scope.SelectedStore != null){
-            $scope.getJetPayDetailsByStoreId($scope.SelectedStore);
+            $scope.getJetPayDetailsForAlaCart($scope.SelectedStore);
+            $scope.getJetPayDetailsForSubscription($scope.SelectedStore);
         }
     }, {},true);
 
-    $scope.$watch('SelectedGeoLocation',function(){
-        var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
-        var paymentchannels = _.filter($scope.jetPayDetials, function (channel) {
-            if(channel.country != null) {
-                return _.contains($scope.SelectedGeoLocation, channel.country)
-            }
-        });
-        //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
-
-        var channelarray = [];
-        $scope.PaymentChannels = [];
-        _.each(paymentchannels, function (channel) {
-            if (channelarray.indexOf(channel.country) === -1) {
-                channelarray.push(channel.partner_id);
-                $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
-            }
-        });
-
-    }, {},true);
-
-    $scope.getJetPayDetailsByStoreId = function(storeId) {
-        AssignRights.getJetPayDetailsByStoreId(storeId, function (jetPayDetials) {
-            $scope.jetPayDetials = angular.copy(jetPayDetials);
-
-            var storechannels = _.pluck(_.where($scope.StoreChannels, { st_id: $scope.SelectedStore }), "cmd_entity_detail");
-
-            var paymentchannels = _.filter($scope.jetPayDetials, function (channel) {
-                if(channel.country != null) {
-                    return _.contains($scope.SelectedGeoLocation, channel.country)
-                }
-            });
-                //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
-            var channelarray = [];
-            $scope.PaymentChannels = [];
-            _.each(paymentchannels, function (channel) {
-                if (channelarray.indexOf(channel.partner_id) === -1) {
-                    channelarray.push(channel.partner_id);
-                    $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
-                }
-            });
-
+    $scope.getJetPayDetailsForAlaCart = function(storeId) {
+        AssignRights.getJetPayDetailsForAlaCart(storeId, function (jetPayDetials) {
+            $scope.jetPayDetials[2] = angular.copy(jetPayDetials);
+            $scope.getJetPayDetails();
         })
     }
+
+    $scope.getJetPayDetailsForSubscription = function(storeId) {
+        AssignRights.getJetPayDetailsForSubscription(storeId, function (jetPayDetials) {
+            $scope.jetPayDetials[1] = angular.copy(jetPayDetials);
+            $scope.getJetPayDetails();
+        })
+    }
+
+    $scope.getJetPayDetails = function(){
+        Object.keys($scope.jetPayDetials).forEach(function(paymentType1) {
+            _.filter($scope.SelectedPaymentType, function (paymentType2) {
+                if(paymentType2 ==  paymentType1){
+                    var paymentchannels = _.filter($scope.jetPayDetials[paymentType1], function (channel) {
+                        if(channel.country != null ) {
+                            return _.contains($scope.SelectedGeoLocation, channel.country)
+                        }
+                    });
+                    //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
+                    var channelarray = [];
+                    $scope.PaymentChannels = [];
+                    _.each(paymentchannels, function (channel) {
+                        if (channelarray.indexOf(channel.partner_id) === -1) {
+                            channelarray.push(channel.partner_id);
+                            $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
+                        }
+                    });
+                    console.log('$scope.PaymentChannels')
+                    console.log($scope.PaymentChannels)
+                }
+            })
+        })
+    }
+
+
+    /*$scope.$watch('SelectedPaymentType',function(){
+        console.log('SelectedPaymentType')
+        $scope.getJetPayDetails();
+    }, {}, true);
+
+    $scope.$watch('SelectedGeoLocation',function(){
+        console.log('SelectedGeoLocation')
+        $scope.getJetPayDetails();
+    }, {},true);*/
+
     $scope.storeChange = function () {
 
         var store = _.find($scope.Stores, function (store) { return store.st_id == $scope.SelectedStore });
@@ -125,8 +136,11 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.SelectedVendor = _.pluck(_.where($scope.AssignVendors, { cmd_group_id: store.st_vendor }), "cmd_entity_detail");
             $scope.SelectedPaymentChannel = _.pluck(_.where($scope.AssignPaymentChannels, { cmd_group_id: store.st_payment_channel }), "cmd_entity_detail");
 
+            $scope.getJetPayDetails();
+
         }
         else {
+
             $scope.PricePointDetail = null;
             $scope.country_group_id = null;
             $scope.payment_type_group_id = null;
