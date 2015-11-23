@@ -71,7 +71,15 @@ exports.logout = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.icon_UserName) {
-                req.session = null;
+                //req.session = null;
+                req.session.icon_UserId = null;
+                req.session.icon_UserRole = null;
+                req.session.icon_UserName = null;
+                req.session.icon_Password = null;
+                req.session.icon_FullName = null;
+                req.session.icon_lastlogin = null;
+                req.session.icon_UserType = null;
+
                 res.redirect('/accountlogin');
             }
             else {
@@ -102,7 +110,7 @@ exports.authenticate = function (req, res, next) {
                                 session.icon_UserId = row[0].ld_id;
                                 session.icon_UserRole = row[0].ld_role;
                                 session.icon_UserName = req.body.username;
-                                session.Password = req.body.password;
+                                session.icon_Password = req.body.password;
                                 session.icon_FullName = row[0].ld_display_name;
                                 session.icon_lastlogin = row[0].ld_last_login;
                                 session.icon_UserType = row[0].ld_user_type;
@@ -161,7 +169,14 @@ function getPages(role) {
 }
 
 exports.viewForgotPassword = function (req, res, next) {
-    req.session = null;
+    //req.session = null;
+    req.session.icon_UserId = null;
+    req.session.icon_UserRole = null;
+    req.session.icon_UserName = null;
+    req.session.icon_Password = null;
+    req.session.icon_FullName = null;
+    req.session.icon_lastlogin = null;
+    req.session.icon_UserType = null;
     res.render('account-forgot', { error: '', msg: '' });
 }
 
@@ -213,7 +228,14 @@ exports.forgotPassword = function (req, res, next) {
 }
 
 exports.viewChangePassword = function (req, res, next) {
-    req.session = null;
+    //req.session = null;
+    req.session.icon_UserId = null;
+    req.session.icon_UserRole = null;
+    req.session.icon_UserName = null;
+    req.session.icon_Password = null;
+    req.session.icon_FullName = null;
+    req.session.icon_lastlogin = null;
+    req.session.icon_UserType = null;
     res.render('account-changepassword', { error: '' });
 }
 
@@ -223,7 +245,7 @@ exports.changePassword = function (req, res) {
             if (req.session.icon_UserName) {
                 var session = req.session;
                 mysql.getConnection('CMS', function (err, connection_central) {
-                    if (req.body.oldpassword == session.Password) {
+                    if (req.body.oldpassword == session.icon_Password) {
                         userManager.updateUserDetails( connection_central, req.body.newpassword, new Date(), session.UserId, function (err, result) {
                             if (err) {
                                 connection_central.release();
@@ -231,7 +253,7 @@ exports.changePassword = function (req, res) {
                             }
                             else {
                                 connection_central.release();
-                                session.Password = req.body.newpassword;
+                                session.icon_Password = req.body.newpassword;
                                 res.send({ success: true, message: 'Password updated successfully.' });
                             }
                         });
