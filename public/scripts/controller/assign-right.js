@@ -32,7 +32,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         $scope.AllPaymentChannels = assignrights.PaymentChannels;
         $scope.VendorCountry = assignrights.VendorCountry;
 
-        $scope.PartnerDistibutionChannels = assignrights.PartnerDistibutionChannels;
+        //$scope.PartnerDistibutionChannels = assignrights.PartnerDistibutionChannels;
         $scope.VendorCountrys = assignrights.VendorCountrys;
 
         $scope.AssignCountrys = assignrights.AssignCountrys;
@@ -128,7 +128,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.content_type_group_id = store.st_content_type;
             $scope.ContentTypes = $scope.AllContentTypes;
             $scope.Countrys = $scope.AllCountrys;
-            $scope.PaymentTypes = $scope.AllPaymentTypes;
+           // $scope.PaymentTypes = $scope.AllPaymentTypes;
             $scope.SelectedGeoLocation = _.pluck(_.where($scope.AssignCountrys, { cmd_group_id: store.st_country_distribution_rights }), "cmd_entity_detail");
             $scope.SelectedPaymentType = _.pluck(_.where($scope.AssignPaymentTypes, { cmd_group_id: store.st_payment_type }), "cmd_entity_detail");
             $scope.SelectContentType = _.pluck(_.where($scope.AssignContentTypes, { cmd_group_id: store.st_content_type }), "cmd_entity_detail");

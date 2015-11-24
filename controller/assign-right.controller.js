@@ -8,7 +8,7 @@ exports.getassignrights = function (req, res, next) {
         if (req.session) {
             if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-                    mysql.getConnection('GATEWAY', function (err, connection_billing_gateway) {
+                    //mysql.getConnection('GATEWAY', function (err, connection_billing_gateway) {
                     	//console.log( connection_billing_gateway );
                         async.parallel({
                             MasterList: function (callback) {
@@ -16,7 +16,7 @@ exports.getassignrights = function (req, res, next) {
                                     callback(err, MasterList);
                                 });
                             },
-                            PaymentTypes: function (callback) {
+                            /*PaymentTypes: function (callback) {
                                 assingRightsManager.getPaymentTypes( connection_billing_gateway, function( err, PaymentTypes  ) {
                                     callback(err, PaymentTypes);
                                 });
@@ -25,7 +25,7 @@ exports.getassignrights = function (req, res, next) {
                                 assingRightsManager.getpartnerDistibutionChannels( connection_billing_gateway, function( err, PartnerDistibutionChannels  ) {
                                     callback(err, PartnerDistibutionChannels);
                                 });
-                            },
+                            },*/
                             ContentTypes: function (callback) {
                                 assingRightsManager.getContentTypes( connection_ikon_cms, function( err, ContentTypes  ) {
                                     callback(err, ContentTypes);
@@ -80,8 +80,7 @@ exports.getassignrights = function (req, res, next) {
                                 callback(null, req.session.icon_UserRole);
                             }
                         }, function (err, results) {
-                            console.log('results.PaymentTypes')
-                            console.log(results.PaymentTypes)
+
                             if (err) {
                                 connection_ikon_cms.release();
                                 res.status(500).json(err.message);
@@ -91,7 +90,7 @@ exports.getassignrights = function (req, res, next) {
                             }
                         });
                     });
-                });
+                //});
             }
             else {
                 res.redirect('/accountlogin');
