@@ -1,5 +1,5 @@
 
-myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateParams, AssignRights, $state, _, $window) {
+myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateParams, AssignRights, $state, _, $window,$timeout) {
     $('.removeActiveClass').removeClass('active');
     $('#assign-right').addClass('active');
     $scope.success = "";
@@ -10,6 +10,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     ngProgress.height('3px');
     $scope.CurrentPage = $state.current.name;
     $scope.jetPayDetials = [];
+
     AssignRights.getPricePointType(function (paymentTypes){
         if(paymentTypes && paymentTypes.length > 0){
             $scope.AllPaymentTypes = angular.copy(paymentTypes);
@@ -33,7 +34,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         $scope.VendorCountry = assignrights.VendorCountry;
 
         //$scope.PartnerDistibutionChannels = assignrights.PartnerDistibutionChannels;
-        $scope.VendorCountrys = assignrights.VendorCountrys;
+        //$scope.VendorCountrys = assignrights.VendorCountrys;
 
         $scope.AssignCountrys = assignrights.AssignCountrys;
         $scope.AssignPaymentTypes = assignrights.AssignPaymentTypes;
@@ -49,8 +50,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.SelectedStore = parseInt($stateParams.id);
 
             if($scope.SelectedStore != undefined && $scope.SelectedStore != '' && $scope.SelectedStore != null){
-                $scope.getJetPayDetailsForAlaCart($scope.SelectedStore);
-                $scope.getJetPayDetailsForSubscription($scope.SelectedStore);
+                $scope.getJetPayDetails($scope.SelectedStore);
             }
              $scope.storeChange();
         }
@@ -67,21 +67,34 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         }
     }, {},true);*/
 
-    $scope.getJetPayDetailsForAlaCart = function(storeId) {
+    $scope.getAlaCartEvents = function(storeId) {
         AssignRights.getJetPayDetailsForAlaCart(storeId, function (jetPayDetials) {
             $scope.jetPayDetials[2] = angular.copy(jetPayDetials);
-            $scope.getJetPayDetails();
         })
     }
 
-    $scope.getJetPayDetailsForSubscription = function(storeId) {
+    $scope.getSubscriptionEvents = function(storeId) {
         AssignRights.getJetPayDetailsForSubscription(storeId, function (jetPayDetials) {
             $scope.jetPayDetials[1] = angular.copy(jetPayDetials);
-            $scope.getJetPayDetails();
         })
     }
 
-    $scope.getJetPayDetails = function(){
+    $scope.getJetPayDetails = function(storeId){
+        $scope.getAlaCartEvents(storeId);
+        $scope.getSubscriptionEvents(storeId);
+        $timeout(function(){
+            if($scope.jetPayDetials.length > 0){
+                $scope.getPaymentChannels();
+            }
+            $scope.countryChange();
+        }, 1000)
+
+    }
+
+    $scope.getPaymentChannels = function(){
+        $scope.PaymentChannels = [];
+
+        console.log('test getPaymentChannels')
         Object.keys($scope.jetPayDetials).forEach(function(paymentType1) {
             _.filter($scope.SelectedPaymentType, function (paymentType2) {
                 if(paymentType2 ==  paymentType1){
@@ -92,11 +105,20 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                     });
                     //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
                     var channelarray = [];
-                    $scope.PaymentChannels = [];
+
                     _.each(paymentchannels, function (channel) {
+                        console.log(channel.partner_id)
+
+                        if (!_.has( $scope.PaymentChannels, channel.partner_id)) {
+                            $scope.PaymentChannels[channel.partner_id] = {};
+                        }
                         if (channelarray.indexOf(channel.partner_id) === -1) {
                             channelarray.push(channel.partner_id);
+
+
+
                             $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
+
                         }
                     });
                 }
@@ -105,15 +127,17 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     }
 
 
-    /*$scope.$watch('SelectedPaymentType',function(){
+   /* $scope.$watch('SelectedPaymentType',function(){
         console.log('SelectedPaymentType')
-        $scope.getJetPayDetails();
-    }, {}, true);
+     //   $scope.getJetPayDetails();
+    }, {}, true);*/
 
     $scope.$watch('SelectedGeoLocation',function(){
-        console.log('SelectedGeoLocation')
-        $scope.getJetPayDetails();
-    }, {},true);*/
+
+        $scope.getPaymentChannels();
+        $scope.countryChange();
+
+    }, {},true);
 
     $scope.storeChange = function () {
 
@@ -131,15 +155,12 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.SelectedGeoLocation = _.pluck(_.where($scope.AssignCountrys, { cmd_group_id: store.st_country_distribution_rights }), "cmd_entity_detail");
             $scope.SelectedPaymentType = _.pluck(_.where($scope.AssignPaymentTypes, { cmd_group_id: store.st_payment_type }), "cmd_entity_detail");
             $scope.SelectContentType = _.pluck(_.where($scope.AssignContentTypes, { cmd_group_id: store.st_content_type }), "cmd_entity_detail");
-            $scope.countryChange();
+
             $scope.SelectedVendor = _.pluck(_.where($scope.AssignVendors, { cmd_group_id: store.st_vendor }), "cmd_entity_detail");
             $scope.SelectedPaymentChannel = _.pluck(_.where($scope.AssignPaymentChannels, { cmd_group_id: store.st_payment_channel }), "cmd_entity_detail");
 
-            //$scope.getJetPayDetails();
-
             if($scope.SelectedStore != undefined && $scope.SelectedStore != '' && $scope.SelectedStore != null){
-                $scope.getJetPayDetailsForAlaCart($scope.SelectedStore);
-                $scope.getJetPayDetailsForSubscription($scope.SelectedStore);
+                $scope.getJetPayDetails($scope.SelectedStore);
             }
         }
         else {
@@ -165,7 +186,8 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
 
 
     $scope.countryChange = function () {
-        var Vendors = _.filter($scope.VendorCountry, function (country) { return _.contains($scope.SelectedGeoLocation, country.r_country_distribution_rights) });
+        var Vendors = _.filter($scope.VendorCountry, function (country) {
+            return _.contains($scope.SelectedGeoLocation, country.r_country_distribution_rights) });
         var Vendorarray = [];
         $scope.Vendors = [];
         _.each(Vendors, function (cnt) {

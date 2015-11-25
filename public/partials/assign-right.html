@@ -30,8 +30,7 @@
                             <label for="selectgeolocation" class="col-sm-3 control-label"><span class="asterisk">*</span>Select Geo Location</label>
                             <div class="col-sm-9">
                                 <span class="ui-select">
-                                    <select name="selectgeolocation" class="form-control" multiple data-ng-model="SelectedGeoLocation" data-ng-options="item.cd_id as item.cd_name for item in Countrys" data-ng-change="countryChange()" required>
-                                        <!--<option value="">-- Select Geo Location --</option>-->
+                                    <select name="selectgeolocation" class="form-control" multiple data-ng-model="SelectedGeoLocation" data-ng-options="item.cd_id as item.cd_name for item in Countrys"  required> <!--data-ng-change="getPaymentChannels()"-->                                       <!--<option value="">-- Select Geo Location --</option>-->
                                     </select>
                                     <span style="color: red" data-ng-show="valuePackForm.$submitted || valuePackForm.selectgeolocation.$dirty">
                                         <span data-ng-show="valuePackForm.selectgeolocation.$error.required">Please Select Geo Location.</span>
