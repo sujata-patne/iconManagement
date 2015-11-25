@@ -48,10 +48,11 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         if ($scope.CurrentPage == "assign-right-manage") {
             $scope.SelectedStore = parseInt($stateParams.id);
 
-            $scope.getJetPayDetailsForAlaCart($scope.SelectedStore);
-            $scope.getJetPayDetailsForSubscription($scope.SelectedStore);
-
-            $scope.storeChange();
+            if($scope.SelectedStore != undefined && $scope.SelectedStore != '' && $scope.SelectedStore != null){
+                $scope.getJetPayDetailsForAlaCart($scope.SelectedStore);
+                $scope.getJetPayDetailsForSubscription($scope.SelectedStore);
+            }
+             $scope.storeChange();
         }
 
     }, function (error) {
@@ -59,12 +60,12 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         $scope.errorvisible = true;
     });
 
-    $scope.$watch('SelectedStore',function(){
+    /*$scope.$watch('SelectedStore',function(){
         if($scope.SelectedStore != undefined && $scope.SelectedStore != '' && $scope.SelectedStore != null){
             $scope.getJetPayDetailsForAlaCart($scope.SelectedStore);
             $scope.getJetPayDetailsForSubscription($scope.SelectedStore);
         }
-    }, {},true);
+    }, {},true);*/
 
     $scope.getJetPayDetailsForAlaCart = function(storeId) {
         AssignRights.getJetPayDetailsForAlaCart(storeId, function (jetPayDetials) {
@@ -98,8 +99,6 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                             $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
                         }
                     });
-                    console.log('$scope.PaymentChannels')
-                    console.log($scope.PaymentChannels)
                 }
             })
         })
@@ -136,8 +135,12 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.SelectedVendor = _.pluck(_.where($scope.AssignVendors, { cmd_group_id: store.st_vendor }), "cmd_entity_detail");
             $scope.SelectedPaymentChannel = _.pluck(_.where($scope.AssignPaymentChannels, { cmd_group_id: store.st_payment_channel }), "cmd_entity_detail");
 
-            $scope.getJetPayDetails();
+            //$scope.getJetPayDetails();
 
+            if($scope.SelectedStore != undefined && $scope.SelectedStore != '' && $scope.SelectedStore != null){
+                $scope.getJetPayDetailsForAlaCart($scope.SelectedStore);
+                $scope.getJetPayDetailsForSubscription($scope.SelectedStore);
+            }
         }
         else {
 
