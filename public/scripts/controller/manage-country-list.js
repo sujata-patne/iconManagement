@@ -177,7 +177,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         $scope.errorvisible = false;
         $scope.successvisible = false;
         if (isValid) {
-
             var group;
             if (!$scope.SelectedGroup || $scope.SelectedGroup == "") {
                 group = {
@@ -208,17 +207,23 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                             }
                         }
                         else {
-                            $scope.error = "Please select country for new Group.";
+                            toastr.error('Please select country for new Group.');
+
+                            //$scope.error = "Please select country for new Group.";
                             $scope.errorvisible = true;
                         }
                     }
                     else {
-                        $scope.error = "Group Name must be unique.";
+                        toastr.error('Group Name must be unique.');
+
+                        //$scope.error = "Group Name must be unique.";
                         $scope.errorvisible = true;
                     }
                 }
                 else {
-                    $scope.error = "Group Name is required.";
+                    toastr.error('Group Name is required.');
+
+                    //$scope.error = "Group Name is required.";
                     $scope.errorvisible = true;
                 }
             }
@@ -244,6 +249,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 if (group.ChangedCountry.length > 0 || group.AddCountryForGroup.length > 0 || group.DeleteCountryForGroup.length > 0) {
                     ngProgress.start();
                     Countrys.SubmitCountrys(group, function (country) {
+
                         if (country.success) {
                             $scope.CountryPageLoadData = country;
                             BindPageData($scope.CountryPageLoadData);
@@ -251,7 +257,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                             $scope.successvisible = true;
                         }
                         else {
-                            toastr.error(country.message);
+                            toastr.error('Group not created due to some error.');
                             $scope.errorvisible = true;
                         }
                         ngProgress.complete();

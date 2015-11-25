@@ -83,6 +83,7 @@ myApp.controller('manageContentCtrl', function ($scope, $window, $http, ngProgre
     $scope.resetForm = function () {
         $scope.successvisible = false;
         $scope.errorvisible = false;
+        $scope.DeliveryType = [];
     }
 
     $scope.submitForm = function (isValid) {

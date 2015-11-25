@@ -94,7 +94,6 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     $scope.getPaymentChannels = function(){
         $scope.PaymentChannels = [];
 
-        console.log('test getPaymentChannels')
         Object.keys($scope.jetPayDetials).forEach(function(paymentType1) {
             _.filter($scope.SelectedPaymentType, function (paymentType2) {
                 if(paymentType2 ==  paymentType1){
@@ -107,15 +106,12 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                     var channelarray = [];
 
                     _.each(paymentchannels, function (channel) {
-                        console.log(channel.partner_id)
 
                         if (!_.has( $scope.PaymentChannels, channel.partner_id)) {
                             $scope.PaymentChannels[channel.partner_id] = {};
                         }
                         if (channelarray.indexOf(channel.partner_id) === -1) {
                             channelarray.push(channel.partner_id);
-
-
 
                             $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
 
@@ -230,7 +226,11 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     }
 
     $scope.resetForm = function () {
-        location.reload();
+$scope.PaymentTypes = [];
+        $scope.Countrys = [];
+        $scope.PaymentChannels = [];
+        $scope.Vendors = [];
+        $scope.ContentTypes = [];
         $scope.successvisible = false;
         $scope.errorvisible = false;
     }

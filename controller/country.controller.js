@@ -60,10 +60,10 @@ exports.submitcountry = function (req, res, next) {
                     if (req.body.status == "NewGroup") {
                         countryManager.getCountryGroupByGroupName(connection_ikon_cms, req.body.group_name.toLowerCase(), function( err, result ) {
                             if (err) {
-                                connection_ikon_cms.release(); ;
+                                connection_ikon_cms.release();
                                 res.status(500).json(err.message);
                             } else {
-                                if (row.length > 0) {
+                                if (result.length > 0) {
                                     res.send({
                                         success: false,
                                         message: 'Group Name must be Unique.',
@@ -90,7 +90,7 @@ exports.submitcountry = function (req, res, next) {
                                 var i = cnt;
                                 countryManager.getLastInsertedCatalogueId( connection_ikon_cms, function( err, row ) {
                                     if (err) {
-                                        connection_ikon_cms.release(); ;
+                                        connection_ikon_cms.release();
                                         res.status(500).json(err.message);
                                     } else {
                                         var icon_country = {
@@ -129,7 +129,7 @@ exports.submitcountry = function (req, res, next) {
                             if (req.body.AddCountryForGroup.length > 0) {
                                 countryManager.getLastInsertedCatalogueId(connection_ikon_cms, function( err, row ) {
                                     if (err) {
-                                        connection_ikon_cms.release(); ;
+                                        connection_ikon_cms.release();
                                         res.status(500).json(err.message);
                                     } else {
                                         var icon_country = {
@@ -186,7 +186,7 @@ exports.submitcountry = function (req, res, next) {
                                                                                     var i = cnt;
                                                                                     countryManager.getLastInsertedCatalogueId(connection_ikon_cms, function( err, row ) {
                                                                                         if (err) {
-                                                                                            connection_ikon_cms.release(); ;
+                                                                                            connection_ikon_cms.release();
                                                                                             res.status(500).json(err.message);
                                                                                         } else {
                                                                                             var icon_country = {
@@ -239,7 +239,7 @@ exports.submitcountry = function (req, res, next) {
                                     var i = cnt;
                                     countryManager.getLastInsertedCatalogueId( connection_ikon_cms, function( err, row ) {
                                         if (err) {
-                                            connection_ikon_cms.release(); ;
+                                            connection_ikon_cms.release();
                                             res.status(500).json(err.message);
                                         } else {
                                             var icon_country = {
@@ -284,7 +284,7 @@ exports.submitcountry = function (req, res, next) {
                             function deleteloop(i) {
                                 countryManager.deleteCountryByGroupId( connection_ikon_cms, req.body.DeleteCountryForGroup[i].cd_id, req.body.group_id, function( err, row, fields ) {
                                     if (err) {
-                                        connection_ikon_cms.release(); ;
+                                        connection_ikon_cms.release();
                                         res.status(500).json(err.message);
                                     }
                                     else {
