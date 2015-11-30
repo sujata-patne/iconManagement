@@ -2,6 +2,24 @@
 var mysql = require('../config/db').pool;
 var nodemailer = require('nodemailer');
 var userManager = require("../models/userModel");
+var crypto = require('crypto');
+algorithm = 'aes-256-ctr', //Algorithm used for encrytion
+    password = 'd6F3Efeq'; //Encryption password
+
+function encrypt(text){
+    var cipher = crypto.createCipher(algorithm,password)
+    var crypted = cipher.update(text,'utf8','hex')
+    crypted += cipher.final('hex');
+    return crypted;
+}
+
+function decrypt(text){
+    var decipher = crypto.createDecipher(algorithm,password)
+    var dec = decipher.update(text,'hex','utf8')
+    dec += decipher.final('utf8');
+    return dec;
+}
+
 
 function getDate(val) {
     var d = new Date(val);
@@ -53,8 +71,57 @@ exports.pages = function (req, res, next) {
     }
 }
 
+//exports.login = function (req, res, next) {
+//    if (req.session) {
+//        if (req.session.icon_UserName) {
+//            res.redirect("/#/plan-list");
+//        }
+//        else {
+//            res.render('account-login', { error: '' });
+//        }
+//    }
+//    else {
+//        res.render('account-login', { error: '' });
+//    }
+//}
 exports.login = function (req, res, next) {
-    if (req.session) {
+    if(req.cookies.remember == 1 && req.cookies.username != '' ){
+        mysql.getConnection('CMS', function (err, connection_ikon_cms) {
+            userManager.getIcnLoginDetails( connection_ikon_cms, decrypt(req.cookies.username), decrypt(req.cookies.password), function( err, row ){
+                if (err) {
+                    res.render('account-login', { error: 'Error in database connection' });
+                } else {
+                    if (row.length > 0) {
+                        if (row[0].ld_active == 1) {
+                            if(row[0].ld_user_type == 'Store Admin') {
+                                connection_ikon_cms.release();
+
+                                var session = req.session;
+                                session.icon_UserId = row[0].ld_id;
+                                session.icon_UserRole = row[0].ld_role;
+                                session.icon_UserName =row[0].ld_user_name;
+                                session.icon_Password = row[0].ld_user_pwd;
+                                session.icon_FullName = row[0].ld_display_name;
+                                session.icon_lastlogin = row[0].ld_last_login;
+                                session.icon_UserType = row[0].ld_user_type;
+                                if (req.session) {
+                                    if (req.session.icon_UserName) {
+                                        res.redirect("/");
+                                    }
+                                    else {
+                                        res.render('account-login', { error: '' });
+                                    }
+                                }
+                                else {
+                                    res.render('account-login', { error: '' });
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }else if (req.session) {
         if (req.session.icon_UserName) {
             res.redirect("/#/plan-list");
         }
@@ -66,20 +133,21 @@ exports.login = function (req, res, next) {
         res.render('account-login', { error: '' });
     }
 }
-
 exports.logout = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.icon_UserName) {
                 //req.session = null;
-                req.session.icon_UserId = null;
+               req.session.icon_UserId = null;
                 req.session.icon_UserRole = null;
                 req.session.icon_UserName = null;
                 req.session.icon_Password = null;
                 req.session.icon_FullName = null;
                 req.session.icon_lastlogin = null;
                 req.session.icon_UserType = null;
-
+                res.clearCookie('remember');
+                res.clearCookie('username');
+                res.clearCookie('password');
                 res.redirect('/accountlogin');
             }
             else {
@@ -95,66 +163,75 @@ exports.logout = function (req, res, next) {
         res.render('account-login', { error: error.message });
     }
 }
-
 exports.authenticate = function (req, res, next) {
     try {
-        mysql.getConnection('CMS', function (err, connection_central) {
-            userManager.getIcnLoginDetails(connection_central, req.body.username, req.body.password, function( err, row ) {
-                if (err) {
-                    res.render('account-login', { error: 'Error in database connection.' });
-                } else {
-                    if (row.length > 0) {
-                        if (row[0].ld_active == 1) {
-                            if (row[0].ld_user_type == "Store Admin") {
-                                var session = req.session;
-                                session.icon_UserId = row[0].ld_id;
-                                session.icon_UserRole = row[0].ld_role;
-                                session.icon_UserName = req.body.username;
-                                session.icon_Password = req.body.password;
-                                session.icon_FullName = row[0].ld_display_name;
-                                session.icon_lastlogin = row[0].ld_last_login;
-                                session.icon_UserType = row[0].ld_user_type;
-                                userManager.updateIcnLoginDetails( connection_central, new Date, row[0].ld_id, function (err, row, fields) {
-                                    if (err) {
-                                        res.render('account-login', { error: 'Error in database connection.' });
-                                    } else {
-                                        connection_central.release();
-                                        res.redirect('/');
-                                    }
-                                });
-                            }
-                            else {
-                                connection_central.release();
-                                res.render('account-login', { error: "You can't access this Site." });
-                            }
-                        }
-                        else {
-                            connection_central.release();
-                            res.render('account-login', { error: 'Your account has been disable.' });
-                        }
-                    } else {
-                        connection_central.release();
-                        if( req.body.username.length == 0  &&  req.body.password.length == 0 ) {
-                            res.render('account-login', {error: 'Please enter username and password.'});
-                        }else if(req.body.username.length != 0  &&  req.body.password.length == 0 ){
-                            res.render('account-login', {error: 'Please enter password.'});
-                        }
-                        else if(req.body.username.length == 0  &&  req.body.password.length != 0){
-                            res.render('account-login', {error: 'Please enter username.'});
-                        }
-                        else {
-                            res.render('account-login', {error: 'Invalid Username / Password.'});
-                        }
-                    }
-                }
-            });
-        })
+        mysql.getConnection('CMS', function (err, connection_ikon_cms) {
+            if(req.body.rememberMe){
+                var minute = 10080 * 60 * 1000;
+                res.cookie('remember', 1, { maxAge: minute });
+                res.cookie('username', encrypt(req.body.username), { maxAge: minute });
+                res.cookie('password', encrypt(req.body.password), { maxAge: minute });
+            }
+            userAuthDetails(connection_ikon_cms,req.body.username,req.body.password,req,res);
+        });
     }
     catch (error) {
-        res.render('account-login', { error: 'Error in database connection.' });
+        res.render('account-login', { error: 'Error in database connection' });
     }
 }
 
+
+function userAuthDetails(dbConnection, username,password,req,res){
+    userManager.getIcnLoginDetails( dbConnection, username, password, function( err, row ){
+        if (err) {
+            dbConnection.release();
+            res.render('account-login', { error: 'Error in database connection' });
+        } else {
+            if (row.length > 0) {
+                if (row[0].ld_active == 1) {
+                    if(row[0].ld_user_type == 'Store Admin') {
+                        var session = req.session;
+                        session.icon_UserId = row[0].ld_id;
+                        session.icon_UserRole = row[0].ld_role;
+                        session.icon_UserName = req.body.username;
+                        session.icon_Password = req.body.password;
+                        session.icon_FullName = row[0].ld_display_name;
+                        session.icon_lastlogin = row[0].ld_last_login;
+                        session.icon_UserType = row[0].ld_user_type;//coming from new store's user table.
+                        userManager.updateIcnLoginDetails( dbConnection, new Date, row[0].ld_id ,function(err,response){
+                            if(err){
+                                dbConnection.release();
+                            }else{
+                                dbConnection.release();
+                                res.redirect('/');
+                            }
+                        });
+                    } else {
+                        dbConnection.release();
+                        res.render('account-login', { error: 'Only Store Admin/Manager are allowed to login' });
+                    }
+                }
+                else {
+                    dbConnection.release();
+                    res.render('account-login', { error: 'Your account has been disable' });
+                }
+            } else {
+                dbConnection.release();
+                if( req.body.username != undefined && req.body.username.length == 0  &&  req.body.password.length == 0 ) {
+                    res.render('account-login', {error: 'Please enter username and password'});
+                }else if(req.body.username != undefined && req.body.username.length != 0  &&  req.body.password.length == 0 ){
+                    res.render('account-login', {error: 'Please enter password'});
+                }
+                else if(req.body.username != undefined && req.body.username.length == 0  &&  req.body.password.length != 0){
+                    res.render('account-login', {error: 'Please enter username'});
+                }
+                else {
+                    res.render('account-login', {error: 'Invalid Username / Password'});
+                }
+            }
+        }
+    });
+}
 function getPages(role) {
 
     var pagesjson = [
@@ -169,14 +246,7 @@ function getPages(role) {
 }
 
 exports.viewForgotPassword = function (req, res, next) {
-    //req.session = null;
-    req.session.icon_UserId = null;
-    req.session.icon_UserRole = null;
-    req.session.icon_UserName = null;
-    req.session.icon_Password = null;
-    req.session.icon_FullName = null;
-    req.session.icon_lastlogin = null;
-    req.session.icon_UserType = null;
+    req.session = null;
     res.render('account-forgot', { error: '', msg: '' });
 }
 
@@ -228,14 +298,7 @@ exports.forgotPassword = function (req, res, next) {
 }
 
 exports.viewChangePassword = function (req, res, next) {
-    //req.session = null;
-    req.session.icon_UserId = null;
-    req.session.icon_UserRole = null;
-    req.session.icon_UserName = null;
-    req.session.icon_Password = null;
-    req.session.icon_FullName = null;
-    req.session.icon_lastlogin = null;
-    req.session.icon_UserType = null;
+    req.session = null;
     res.render('account-changepassword', { error: '' });
 }
 
@@ -245,7 +308,7 @@ exports.changePassword = function (req, res) {
             if (req.session.icon_UserName) {
                 var session = req.session;
                 mysql.getConnection('CMS', function (err, connection_central) {
-                    if (req.body.oldpassword == session.icon_Password) {
+                    if (req.body.oldpassword == session.Password) {
                         userManager.updateUserDetails( connection_central, req.body.newpassword, new Date(), session.UserId, function (err, result) {
                             if (err) {
                                 connection_central.release();
@@ -253,7 +316,7 @@ exports.changePassword = function (req, res) {
                             }
                             else {
                                 connection_central.release();
-                                session.icon_Password = req.body.newpassword;
+                                session.Password = req.body.newpassword;
                                 res.send({ success: true, message: 'Password updated successfully.' });
                             }
                         });
