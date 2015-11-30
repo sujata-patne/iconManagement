@@ -106,7 +106,6 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                     var channelarray = [];
 
                     _.each(paymentchannels, function (channel) {
-
                         if (!_.has( $scope.PaymentChannels, channel.partner_id)) {
                             $scope.PaymentChannels[channel.partner_id] = {};
                         }
@@ -123,10 +122,9 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     }
 
 
-   /* $scope.$watch('SelectedPaymentType',function(){
-        console.log('SelectedPaymentType')
-     //   $scope.getJetPayDetails();
-    }, {}, true);*/
+    $scope.$watch('SelectedPaymentType',function(){
+        $scope.getPaymentChannels();
+    }, {}, true);
 
     $scope.$watch('SelectedGeoLocation',function(){
 
