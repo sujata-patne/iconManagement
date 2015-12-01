@@ -84,9 +84,9 @@ exports.pages = function (req, res, next) {
 //    }
 //}
 exports.login = function (req, res, next) {
-    if(req.cookies.remember == 1 && req.cookies.username != '' ){
+    if(req.cookies.icon_remember == 1 && req.cookies.icon_username != '' ){
         mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-            userManager.getIcnLoginDetails( connection_ikon_cms, decrypt(req.cookies.username), decrypt(req.cookies.password), function( err, row ){
+            userManager.getIcnLoginDetails( connection_ikon_cms, decrypt(req.cookies.icon_username), decrypt(req.cookies.icon_password), function( err, row ){
                 if (err) {
                     res.render('account-login', { error: 'Error in database connection' });
                 } else {
@@ -144,9 +144,9 @@ exports.logout = function (req, res, next) {
                 req.session.icon_FullName = null;
                 req.session.icon_lastlogin = null;
                 req.session.icon_UserType = null;
-                res.clearCookie('remember');
-                res.clearCookie('username');
-                res.clearCookie('password');
+                res.clearCookie('icon_remember');
+                res.clearCookie('icon_username');
+                res.clearCookie('icon_password');
                 res.redirect('/accountlogin');
             }
             else {
@@ -167,9 +167,9 @@ exports.authenticate = function (req, res, next) {
         mysql.getConnection('CMS', function (err, connection_ikon_cms) {
             if(req.body.rememberMe){
                 var minute = 10080 * 60 * 1000;
-                res.cookie('remember', 1, { maxAge: minute });
-                res.cookie('username', encrypt(req.body.username), { maxAge: minute });
-                res.cookie('password', encrypt(req.body.password), { maxAge: minute });
+                res.cookie('icon_remember', 1, { maxAge: minute });
+                res.cookie('icon_username', encrypt(req.body.username), { maxAge: minute });
+                res.cookie('icon_password', encrypt(req.body.password), { maxAge: minute });
             }
             userAuthDetails(connection_ikon_cms,req.body.username,req.body.password,req,res);
         });
