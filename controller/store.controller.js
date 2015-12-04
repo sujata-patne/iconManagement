@@ -161,7 +161,7 @@ exports.AddEditStore = function (req, res, next) {
                                             res.status(500).json(err.message);
                                         } else {
                                             updateIcnLoginDetailsQuery = {
-                                                "ld_user_id" : req.body.store_email.split('@')[0],
+                                               // "ld_user_id" : req.body.store_email.split('@')[0],
                                                 "ld_user_name" : req.body.store_email,
                                                 "ld_email_id" : req.body.store_email,
                                                 "ld_display_name" : req.body.store_contact_person,
@@ -169,6 +169,7 @@ exports.AddEditStore = function (req, res, next) {
                                                 "ld_modified_on" : new Date(),
                                                 "ld_modified_by" :req.session.icon_UserName
                                             }
+
                                             storeManager.updateIcnLoginDetails( connection_ikon_cms, updateIcnLoginDetailsQuery, req.body.store_ld_id, function( err, result ) {
                                                 if (err) {
                                                     connection_ikon_cms.release();

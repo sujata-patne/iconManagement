@@ -1,12 +1,12 @@
- 
+
 myApp.service('AssignRights', ['$http', function ($http) {
     var service = {};
     service.baseRestUrl = '';
     service.getPricePointType = function(success,error){
         $http.post('http://192.168.1.168:8060/BillingUtilService/GetEnumDetails?Type=payment_type')
-        .success(function (items) {
-            success(items);
-        }).error(function (err) {
+            .success(function (items) {
+                success(items);
+            }).error(function (err) {
             error(err);
         });
     }
@@ -34,6 +34,8 @@ myApp.service('AssignRights', ['$http', function ($http) {
             error(err);
         });
     }
+
+
 
     return service;
 } ]);
