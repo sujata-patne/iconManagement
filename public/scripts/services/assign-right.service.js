@@ -1,12 +1,12 @@
- 
+
 myApp.service('AssignRights', ['$http', function ($http) {
     var service = {};
     service.baseRestUrl = '';
     service.getPricePointType = function(success,error){
-        $http.get('http://103.43.2.10/BillingUtilService/GetEnumDetails?Type=payment_type')
-        .success(function (items) {
-            success(items);
-        }).error(function (err) {
+        $http.post('http://192.168.1.168:8060/BillingUtilService/GetEnumDetails?Type=payment_type')
+            .success(function (items) {
+                success(items);
+            }).error(function (err) {
             error(err);
         });
     }
@@ -18,12 +18,12 @@ myApp.service('AssignRights', ['$http', function ($http) {
         });
     }
     service.getJetPayDetailsForSubscription = function(storeId,success){
-        $http.get('http://103.43.2.10/BillingUtilService/GetStoreDetails?Store='+storeId).success(function (items) {
+        $http.post('http://192.168.1.168:8060/BillingUtilService/GetStoreDetails?Store='+storeId).success(function (items) {
             success(items);
         });
     }
     service.getJetPayDetailsForAlaCart = function(storeId,success){
-        $http.get('http://103.43.2.10/BillingUtilService/GetStoreDetailsAla?Store='+storeId).success(function (items) {
+        $http.post('http://192.168.1.168:8060/BillingUtilService/GetStoreDetailsAla?Store='+storeId).success(function (items) {
             success(items);
         });
     }

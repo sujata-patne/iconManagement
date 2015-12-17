@@ -88,27 +88,11 @@ exports.updateIcnStore = function( dbconnection, updateQuery, storeId, callback 
 	);
 }
 
-exports.updateIcnLoginDetails = function( dbConnection, updateIcnLoginDetailsQuery, storeId, callback ) {
-	dbConnection.query( 'UPDATE ' +
-							'icn_login_detail ' +
-		                'SET ' +
-							'ld_user_id=?,' +
-							'ld_user_name=?,' +
-							'ld_email_id=?,' +
-							'ld_display_name=?,' +
-							'ld_mobile_no=?,' +
-							'ld_modified_on=?,' +
-							'ld_modified_by =? ' +
+exports.updateIcnLoginDetails = function( dbConnection, updateIcnLoginDetailsQuery, storeUserId, callback ) {
+	dbConnection.query( 'UPDATE icn_login_detail ' +
+		                'SET ?' +
 						'WHERE ld_id = ?',
-					[ updateIcnLoginDetailsQuery.ld_user_id,
-					  updateIcnLoginDetailsQuery.ld_user_name,
-					  updateIcnLoginDetailsQuery.ld_email_id,
-					  updateIcnLoginDetailsQuery.ld_display_name,
-					  updateIcnLoginDetailsQuery.ld_mobile_no,
-					  updateIcnLoginDetailsQuery.ld_modified_on,
-					  updateIcnLoginDetailsQuery.ld_modified_by,
-					  storeId
-					],
+					[ updateIcnLoginDetailsQuery,storeUserId ],
 		function (err, result) {
 			callback( err, result );
 		}

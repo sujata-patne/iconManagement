@@ -3,6 +3,9 @@ var mysql = require('../config/db').pool;
 var async = require("async");
 var nodemailer = require('nodemailer');
 var assingRightsManager = require( "../models/assignRightsModel");
+var config = require('../config')();
+var SitePath = config.site_path+":"+config.port;
+
 exports.getassignrights = function (req, res, next) {
     try {
         if (req.session) {
@@ -44,6 +47,11 @@ exports.getassignrights = function (req, res, next) {
                             Stores: function (callback) {
                                 assingRightsManager.getStores( connection_ikon_cms, function( err, Stores  ) {
                                     callback( err, Stores );
+                                });
+                            },
+                            StoresUserDetails: function (callback) {
+                                assingRightsManager.getStoresUserDetails( connection_ikon_cms, function( err, storeUsers  ) {
+                                    callback( err, storeUsers );
                                 });
                             },
                             StoreChannels: function (callback) {
@@ -122,7 +130,6 @@ exports.updateassignright = function (req, res, next) {
                     else {
                         EditStore();
                     }
-
                     function GetGroupId(type) {
                         var groupid = null;
                         switch (type) {
@@ -151,11 +158,13 @@ exports.updateassignright = function (req, res, next) {
                             loop(0);
                             function loop(cnt) {
                                 var i = cnt;
+
                                 var groupid = GetGroupId(req.body.AddAssignRights[i].Type)
+
                                 if (groupid != null) {
                                     assingRightsManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function (err, row) {
                                         if (err) {
-                                            connection_ikon_cms.release(); ;
+                                            connection_ikon_cms.release();
                                             res.status(500).json(err.message);
                                         } else {
                                             var metadata = {
@@ -237,6 +246,7 @@ exports.updateassignright = function (req, res, next) {
                                                                     "st_modified_on": new Date(),
                                                                     "st_modified_by" : req.session.icon_UserName
                                                                 }
+
                                                                 assingRightsManager.updateIcnStore( connection_ikon_cms, updateQueryData, req.body.storeId, function( err, result ) {
                                                                     if (err) {
                                                                         connection_ikon_cms.release();
@@ -255,10 +265,10 @@ exports.updateassignright = function (req, res, next) {
                                                                         Message += " </td></tr>";
                                                                         Message += " <h5>Site Rights Updated.</h5>";
                                                                         Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://localhost:3000\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href='"+SitePath+"/' target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
                                                                         Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
                                                                         var mailOptions = {
-                                                                            to: req.body.store_email,
+                                                                            to: req.body.storeUserEmail,
                                                                             subject: 'Store Rights Assigned.',
                                                                             html: Message
                                                                         }

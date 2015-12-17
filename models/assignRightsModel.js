@@ -72,6 +72,16 @@ exports.getStores = function( dbConnection, callback ) {
     );
 }
 
+exports.getStoresUserDetails = function( dbConnection, callback ) {
+    dbConnection.query('select u.*,su.* from icn_store as s ' +
+            'inner join icn_store_user as su on s.st_id = su.su_st_id ' +
+            'inner join icn_login_detail as u on u.ld_id = su.su_ld_id ',
+        function (err, storeUsers) {
+            callback(err, storeUsers );
+        }
+    );
+}
+
 exports.getStoreChannels = function( dbConnection, callback ) {
     dbConnection.query('select * from (select * from icn_store)st '+
                         'inner join (select * from multiselect_metadata_detail ) mmd on (st.st_front_type=mmd.cmd_group_id) ' +

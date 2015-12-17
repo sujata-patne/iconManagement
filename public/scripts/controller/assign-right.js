@@ -15,7 +15,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         if(paymentTypes && paymentTypes.length > 0){
             $scope.AllPaymentTypes = angular.copy(paymentTypes);
         }else{
-            $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'Subscription'},{'en_id':2, 'en_display_name':'One Time'}];
+            $scope.AllPaymentTypes = [{'en_id':1, 'en_display_name':'One Time'},{'en_id':2, 'en_display_name':'Subscription'}];
         }
     },function(error){
         console.log(error);
@@ -24,6 +24,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     AssignRights.GetAssignRights({ state: $scope.CurrentPage }, function (assignrights) {
 
         $scope.Stores = assignrights.Stores;
+        $scope.UserDetails = assignrights.StoresUserDetails;
 
         $scope.StoreChannels = assignrights.StoreChannels;
         $scope.AllContentTypes = assignrights.ContentTypes;
@@ -69,13 +70,13 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
 
     $scope.getAlaCartEvents = function(storeId) {
         AssignRights.getJetPayDetailsForAlaCart(storeId, function (jetPayDetials) {
-            $scope.jetPayDetials[2] = angular.copy(jetPayDetials);
+            $scope.jetPayDetials[1] = angular.copy(jetPayDetials);
         })
     }
 
     $scope.getSubscriptionEvents = function(storeId) {
         AssignRights.getJetPayDetailsForSubscription(storeId, function (jetPayDetials) {
-            $scope.jetPayDetials[1] = angular.copy(jetPayDetials);
+            $scope.jetPayDetials[2] = angular.copy(jetPayDetials);
         })
     }
 
@@ -137,6 +138,10 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
 
         var store = _.find($scope.Stores, function (store) { return store.st_id == $scope.SelectedStore });
         if (store) {
+            var storeUsers = _.find($scope.UserDetails, function (user) { return user.su_st_id == $scope.SelectedStore });
+
+            $scope.storeUserEmail = storeUsers.ld_email_id;
+
             $scope.PricePointDetail = store.st_pricepoint_url;
             $scope.country_group_id = store.st_country_distribution_rights;
             $scope.payment_type_group_id = store.st_payment_type;
@@ -158,7 +163,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             }
         }
         else {
-
+            $scope.storeUserEmail = null;
             $scope.PricePointDetail = null;
             $scope.country_group_id = null;
             $scope.payment_type_group_id = null;
@@ -252,6 +257,7 @@ $scope.PaymentTypes = [];
 
             var store = {
                 storeId: $scope.SelectedStore,
+                storeUserEmail: $scope.storeUserEmail,
                 AddAssignRights: AddArray,
                 DeleteAssignRights: DeleteArray,
                 country_group_id: $scope.country_group_id,

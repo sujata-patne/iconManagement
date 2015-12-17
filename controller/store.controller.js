@@ -4,6 +4,11 @@ var nodemailer = require('nodemailer');
 var async = require("async");
 var storeManager = require("../models/storeModel");
 var userManager = require("../models/userModel");
+var config = require('../config')();
+var SitePath = config.site_path+":"+config.port;
+
+//console.log("site_path "+config.site_path+":"+config.port)
+
 exports.getstoredata = function (req, res, next) {
     try {
         if (req.session) {
@@ -117,6 +122,8 @@ exports.AddEditStore = function (req, res, next) {
 
 
                     function StoreCrud() {
+                        var uniqueID = ("_"+new Date().getTime()).substring(9,13);
+
                         storeManager.getStoreByName( connection_ikon_cms, req.body.store_name.toLocaleLowerCase(), function( err, result ) {
                             if (err) {
                                 connection_ikon_cms.release();
@@ -161,7 +168,7 @@ exports.AddEditStore = function (req, res, next) {
                                             res.status(500).json(err.message);
                                         } else {
                                             updateIcnLoginDetailsQuery = {
-                                                "ld_user_id" : req.body.store_email.split('@')[0],
+                                               // "ld_user_id" : req.body.store_email.split('@')[0],
                                                 "ld_user_name" : req.body.store_email,
                                                 "ld_email_id" : req.body.store_email,
                                                 "ld_display_name" : req.body.store_contact_person,
@@ -169,6 +176,7 @@ exports.AddEditStore = function (req, res, next) {
                                                 "ld_modified_on" : new Date(),
                                                 "ld_modified_by" :req.session.icon_UserName
                                             }
+
                                             storeManager.updateIcnLoginDetails( connection_ikon_cms, updateIcnLoginDetailsQuery, req.body.store_ld_id, function( err, result ) {
                                                 if (err) {
                                                     connection_ikon_cms.release();
@@ -319,7 +327,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                 var storeuser = {
                                                                                                     ld_id: ld_id,
                                                                                                     ld_active: 1,
-                                                                                                    ld_user_id: req.body.store_email.split('@')[0],
+                                                                                                    ld_user_id: req.body.store_email.split('@')[0] + uniqueID,
                                                                                                     ld_user_pwd: 'icon',
                                                                                                     ld_user_name: req.body.store_email,
                                                                                                     ld_display_name: req.body.store_contact_person,
@@ -369,10 +377,10 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                                         Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
                                                                                                                         Message += " </td></tr>";
                                                                                                                         Message += " <h5>Please find below login details : </h5>";
-                                                                                                                        Message += " <tr><td style=\"font-weight:bold;font-size:15px;color:#3d849b;\">Username : </td><td>" + req.body.store_email.split('@')[0] + "</td></tr>";
+                                                                                                                        Message += " <tr><td style=\"font-weight:bold;font-size:15px;color:#3d849b;\">Username : </td><td>" + req.body.store_email.split('@')[0] + uniqueID + "</td></tr>";
                                                                                                                         Message += " <tr><td style=\"font-weight:bold;font-size:15px;color:#3d849b;\">Temporary Password : </td><td>icon</td></tr>";
                                                                                                                         Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                                                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://localhost:3000\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                                                                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href='"+SitePath+"/' target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
                                                                                                                         Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
                                                                                                                         var mailOptions = {
                                                                                                                             to: req.body.store_email,
@@ -455,7 +463,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                 var storeuser = {
                                                                     ld_id: ld_id,
                                                                     ld_active: 1,
-                                                                    ld_user_id: req.body.store_email.split('@')[0],
+                                                                    ld_user_id: req.body.store_email.split('@')[0] + uniqueID,
                                                                     ld_user_pwd: 'icon',
                                                                     ld_user_name: req.body.store_email,
                                                                     ld_display_name: req.body.store_contact_person,
@@ -503,7 +511,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                                         Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
                                                                                         Message += " </td></tr>";
                                                                                         Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://localhost:3000\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href='"+SitePath+"/' target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
                                                                                         Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
                                                                                         var mailOptions = {
                                                                                             to: req.body.store_email,
