@@ -18,7 +18,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         var CountryList = [];
         _.each($scope.AllCountryList, function (cnt) {
             var data = _.find(CountryData, function (managecnt) {
-                return cnt.cd_name == managecnt.cd_name
+                return cnt.icc_country_name == managecnt.cd_name
             })
             if (!data) {
                 CountryList.push(cnt);
@@ -40,7 +40,8 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         if (contentgroup) {
             $scope.content_group = contentgroup.cm_id;
         }
-        $scope.AllCountryList = _.where(country.CountryList, { cm_name: "global_country_list" });
+        //$scope.AllCountryList = _.where(country.CountryList, { cm_name: "global_country_list" });
+        $scope.AllCountryList = country.CountryCurrency;
         $scope.OldManageCountry = _.where(country.CountryList, { cm_name: "icon_geo_location" });
         $scope.CountryList = GetCountrys($scope.OldManageCountry);
         $scope.ManagedCountrys = [];
@@ -92,7 +93,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     function GetGroupCountry(CountryData) {
         var CountryList = [];
         _.each($scope.AllCountryList, function (cnt) {
-            var data = _.find(CountryData, function (managecnt) { return cnt.cd_name == managecnt.cd_name })
+            var data = _.find(CountryData, function (managecnt) { return cnt.icc_country_name == managecnt.cd_name })
             if (!data) {
                 CountryList.push(cnt);
             }
@@ -117,20 +118,21 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         }
         else {
             var groupcountry = _.where($scope.ManagedGroupCountry, { cm_name: $scope.SelectedGroup });
-            $scope.OldGroupPendingCountry = [];
+             $scope.OldGroupPendingCountry = [];
             _.each(groupcountry, function (country) {
                 $scope.OldGroupPendingCountry.push(country);
             });
             $scope.GroupPendingCountry = GetGroupCountry(groupcountry);
             $scope.GroupCountry = groupcountry;
+console.log($scope.GroupCountry) //
             $scope.addgroupvisible = false;
             $scope.groupcountryvisible = true;
         }
     }
 
     $scope.left_countries = function () {
-        _.each($scope.SelectedPendingCountry, function (selected) {
-            var index = _.findIndex($scope.GroupPendingCountry, function (cnt) { return cnt.cd_name == selected })
+         _.each($scope.SelectedPendingCountry, function (selected) {
+            var index = _.findIndex($scope.GroupPendingCountry, function (cnt) { return cnt.icc_country_name == selected })
             if (index > -1) {
                 var data = $scope.GroupPendingCountry[index];
                 $scope.GroupCountry.push(data);
@@ -142,7 +144,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
 
     $scope.right_countries = function () {
         _.each($scope.SelectedGroupCountry, function (selected) {
-            var index = _.findIndex($scope.GroupCountry, function (cnt) { return cnt.cd_id == selected })
+            var index = _.findIndex($scope.GroupCountry, function (cnt) { return cnt.icc_country_id == selected })
             if (index > -1) {
                 var data = $scope.GroupCountry[index];
                 $scope.GroupPendingCountry.push(data);
@@ -191,7 +193,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 }
             }
             else if ($scope.SelectedGroup == "Add New Group") {
-                if ($scope.NewGroupName && $scope.NewGroupName != "") {
+                 if ($scope.NewGroupName && $scope.NewGroupName != "") {
                     var index = _.findIndex($scope.AllGroups, function (cnt) { return cnt.cd_name.toLowerCase() == $scope.NewGroupName.toLowerCase() })
                     if (index == -1) {
                         if ($scope.GroupCountry.length > 0) {

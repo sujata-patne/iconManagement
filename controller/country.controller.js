@@ -23,6 +23,11 @@ exports.getcountrydata = function (req, res, next) {
                                 callback(err, MasterCountryList);
                             });
                         },
+                        CountryCurrency: function (callback) {
+                            countryManager.getCountryCurrency(connection_ikon_cms,function (err, countryCurrency) {
+                                callback(err, countryCurrency);
+                            });
+                        },
                         UserRole: function (callback) {
                             callback(null, req.session.icon_UserRole);
                         }
@@ -192,8 +197,8 @@ exports.submitcountry = function (req, res, next) {
                                                                                             var icon_country = {
                                                                                                 cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                                                                 cd_cm_id: Groupid,
-                                                                                                cd_name: req.body.AddCountryForGroup[i].cd_name,
-                                                                                                cd_display_name: req.body.AddCountryForGroup[i].cd_name,
+                                                                                                cd_name: req.body.AddCountryForGroup[i].icc_country_name,
+                                                                                                cd_display_name: req.body.AddCountryForGroup[i].icc_country_name,
                                                                                                 cd_desc: null,
                                                                                                 cd_desc1: null
                                                                                             }
@@ -245,8 +250,8 @@ exports.submitcountry = function (req, res, next) {
                                             var icon_country = {
                                                 cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                 cd_cm_id: req.body.group_id,
-                                                cd_name: req.body.AddCountryForGroup[i].cd_name,
-                                                cd_display_name: req.body.AddCountryForGroup[i].cd_name,
+                                                cd_name: req.body.AddCountryForGroup[i].icc_country_name,
+                                                cd_display_name: req.body.AddCountryForGroup[i].icc_country_name,
                                                 cd_desc: null,
                                                 cd_desc1: null
                                             }
@@ -316,20 +321,29 @@ exports.submitcountry = function (req, res, next) {
                                         res.status(500).json(err.message);
                                     }
                                     else {
-                                        countryManager.getMasterCountryList( connection_ikon_cms, function( err, MasterCountryList ) {
+                                        countryManager.getCountryCurrency(connection_ikon_cms,function (err, countryCurrency) {
                                             if (err) {
                                                 connection_ikon_cms.release();
                                                 res.status(500).json(err.message);
                                             }
                                             else {
-                                                connection_ikon_cms.release();
-                                                res.send({
-                                                    success: true,
-                                                    message: 'Country Data updated successfully.',
-                                                    MasterCountryList: MasterCountryList,
-                                                    CountryGroups: CountryGroups,
-                                                    CountryList: Countrys,
-                                                    RoleUser: req.session.icon_UserRole
+                                                countryManager.getMasterCountryList(connection_ikon_cms, function (err, MasterCountryList) {
+                                                    if (err) {
+                                                        connection_ikon_cms.release();
+                                                        res.status(500).json(err.message);
+                                                    }
+                                                    else {
+                                                        connection_ikon_cms.release();
+                                                        res.send({
+                                                            success: true,
+                                                            message: 'Country Data updated successfully.',
+                                                            MasterCountryList: MasterCountryList,
+                                                            CountryGroups: CountryGroups,
+                                                            CountryCurrency: countryCurrency,
+                                                            CountryList: Countrys,
+                                                            RoleUser: req.session.icon_UserRole
+                                                        });
+                                                    }
                                                 });
                                             }
                                         });
