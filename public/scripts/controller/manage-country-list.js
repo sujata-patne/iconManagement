@@ -48,6 +48,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         _.each($scope.OldManageCountry, function (cnt) {
             $scope.ManagedCountrys.push(cnt);
         })
+        console.log($scope.ManagedCountrys)
         $scope.AllGroups = _.where(country.CountryList, { cm_name: "country_group" });
         $scope.AllGroups.unshift({ cd_id: -1, cd_name: "Add New Group" });
         $scope.ManagedGroupCountry = country.CountryGroups;
@@ -69,9 +70,11 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         BindPageData($scope.CountryPageLoadData);
     }
     function GetAddNewCountryInIcon(OldData, TotalData) {
+
         var AddArray = [];
         _.each(TotalData, function (total) {
-            var data = _.find(OldData, function (old) { return old.cd_name == total.cd_name });
+            var data = _.find(OldData, function (old) {
+                return old.icc_country_name == total.icc_country_name });
             if (!data) {
                 AddArray.push(total);
             }
@@ -80,10 +83,11 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     }
     $scope.add_countries = function () {
         _.each($scope.selectedCountries, function (selected) {
-            var index = _.findIndex($scope.CountryList, function (cnt) { return cnt.cd_name == selected })
+            var index = _.findIndex($scope.CountryList, function (cnt) { return cnt.icc_country_name == selected })
             if (index > -1) {
                 var data = $scope.CountryList[index];
                 $scope.ManagedCountrys.push(data);
+
                 $scope.CountryList.splice(index, 1);
             }
         })
@@ -124,8 +128,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
             });
             $scope.GroupPendingCountry = GetGroupCountry(groupcountry);
             $scope.GroupCountry = groupcountry;
-console.log($scope.GroupCountry) //
-            $scope.addgroupvisible = false;
+             $scope.addgroupvisible = false;
             $scope.groupcountryvisible = true;
         }
     }
@@ -179,8 +182,10 @@ console.log($scope.GroupCountry) //
         $scope.errorvisible = false;
         $scope.successvisible = false;
         if (isValid) {
+
             var group;
             if (!$scope.SelectedGroup || $scope.SelectedGroup == "") {
+                console.log('new country')
                 group = {
                     status: "NoGroup",
                     group_id: $scope.SelectedGroup,
@@ -193,7 +198,9 @@ console.log($scope.GroupCountry) //
                 }
             }
             else if ($scope.SelectedGroup == "Add New Group") {
-                 if ($scope.NewGroupName && $scope.NewGroupName != "") {
+                console.log('new group')
+
+                if ($scope.NewGroupName && $scope.NewGroupName != "") {
                     var index = _.findIndex($scope.AllGroups, function (cnt) { return cnt.cd_name.toLowerCase() == $scope.NewGroupName.toLowerCase() })
                     if (index == -1) {
                         if ($scope.GroupCountry.length > 0) {
@@ -230,6 +237,8 @@ console.log($scope.GroupCountry) //
                 }
             }
             else {
+                console.log('update country')
+
                 if ($scope.GroupCountry.length > 0) {
                     group = {
                         status: "UpdateGroup",
@@ -248,6 +257,8 @@ console.log($scope.GroupCountry) //
                 }
             }
             if (group) {
+                console.log(group.ChangedCountry)
+
                 if (group.ChangedCountry.length > 0 || group.AddCountryForGroup.length > 0 || group.DeleteCountryForGroup.length > 0) {
                     ngProgress.start();
                     Countrys.SubmitCountrys(group, function (country) {

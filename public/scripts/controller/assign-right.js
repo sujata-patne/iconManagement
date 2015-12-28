@@ -22,8 +22,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     });
 
     AssignRights.GetAssignRights({ state: $scope.CurrentPage }, function (assignrights) {
-
-        $scope.Stores = assignrights.Stores;
+         $scope.Stores = assignrights.Stores;
         $scope.UserDetails = assignrights.StoresUserDetails;
 
         $scope.StoreChannels = assignrights.StoreChannels;
@@ -33,9 +32,10 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         //$scope.AllPaymentTypes = assignrights.PaymentTypes;
         $scope.AllPaymentChannels = assignrights.PaymentChannels;
         $scope.VendorCountry = assignrights.VendorCountry;
+        $scope.IconGroupCountry = assignrights.IconGroupCountry;
+        $scope.CountryGroups = _.where(assignrights.Countrys, { group_status: "group" });
+        $scope.IconOnlyCountry = assignrights.IconCountry;
 
-        //$scope.PartnerDistibutionChannels = assignrights.PartnerDistibutionChannels;
-        //$scope.VendorCountrys = assignrights.VendorCountrys;
 
         $scope.AssignCountrys = assignrights.AssignCountrys;
         $scope.AssignPaymentTypes = assignrights.AssignPaymentTypes;
@@ -94,15 +94,19 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
 
     $scope.getPaymentChannels = function(){
         $scope.PaymentChannels = [];
+        var countries = GetSelectedCountry($scope.SelectedGeoLocation);
 
         Object.keys($scope.jetPayDetials).forEach(function(paymentType1) {
             _.filter($scope.SelectedPaymentType, function (paymentType2) {
                 if(paymentType2 ==  paymentType1){
                     var paymentchannels = _.filter($scope.jetPayDetials[paymentType1], function (channel) {
                         if(channel.country != null ) {
-                            return _.contains($scope.SelectedGeoLocation, channel.country)
+                           // return _.contains($scope.SelectedGeoLocation, channel.country)
+                            return _.contains(countries, channel.country)
                         }
                     });
+
+
                     //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
                     var channelarray = [];
 
@@ -183,10 +187,49 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         }
     }
 
+    function GetSelectedCountry(selectedcountry) {
+        var country = [];
+        var group = [];
+        _.each(selectedcountry, function (item) {
+            var match = _.find($scope.IconOnlyCountry, function (country) { return country.cd_id == item });
+            if (match) {
+                country.push(item);
+            }
+            else {
+                group.push(item);
+            }
+        });
+
+        _.each(group, function (item) {
+
+            var match = _.find($scope.CountryGroups, function (country) {
+                return country.cd_id == item });
+            if (match) {
+                console.log('IconGroupCountry')
+                console.log($scope.IconGroupCountry)
+                var groupcountry = _.where($scope.IconGroupCountry, { cm_name: match.cd_name });
+                console.log('groupcountry')
+                console.log(groupcountry)
+                _.each(groupcountry, function (item) {
+
+                    country.push(item.cd_id);
+                });
+            }
+        });
+        console.log('country')
+        console.log(country)
+        country = _.unique(country);
+
+        return country;
+    }
 
     $scope.countryChange = function () {
+
+        var countries = GetSelectedCountry($scope.SelectedGeoLocation);
+       // console.log(countries)
+
         var Vendors = _.filter($scope.VendorCountry, function (country) {
-            return _.contains($scope.SelectedGeoLocation, country.r_country_distribution_rights) });
+            return _.contains(countries, country.r_country_distribution_rights) });
         var Vendorarray = [];
         $scope.Vendors = [];
         _.each(Vendors, function (cnt) {

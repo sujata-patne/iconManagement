@@ -36,6 +36,32 @@ exports.getContentTypes = function( dbConnection, callback ) {
     );
 }
 
+exports.getIconCountryGroup = function( dbConnection, callback ) {
+    /*dbConnection.query('select * from catalogue_master as cm '+
+        'left join catalogue_detail as cd on cm.cm_id = cd.cd_cm_id '+
+        'where cm.cm_name in("country_group")  ',*/
+    dbConnection.query('select cm_id,cm_name,cd_id,cd_name from (select cd_name as group_name from catalogue_master as a , catalogue_detail as b where a.cm_name in("country_group") and a.cm_id = b.cd_cm_id )cm inner join(select cm_id,cm_name,cd_id  as icn_country_id,cd_name from catalogue_master as a,catalogue_detail as b where a.cm_id = b.cd_cm_id)cd on(cm.group_name = cd.cm_name) inner join(select cd_id,cd_name as country_name from catalogue_master as a , catalogue_detail as b where a.cm_name in("global_country_list") and a.cm_id = b.cd_cm_id)globalcountry on(cd.cd_name = globalcountry.country_name)',
+        function (err, IconGroupCountry) {
+            callback(err, IconGroupCountry );
+        }
+    );
+}
+exports.getIconCountry = function( dbConnection, callback ) {
+    dbConnection.query('select DISTINCT cd_id,cd_name from '+
+        '(select CASE  WHEN groupid is null THEN icn_cnt_name ELSE country_name  END AS country_name, '+
+        'CASE  WHEN groupid is null THEN icn_cnt ELSE countryid  END AS country_id, '+
+        'groupid  from  (SELECT cd_id as icn_cnt,cd_name as icn_cnt_name ,cd_cm_id as icn_cd_cm_id FROM catalogue_detail)cd '+
+        'inner join(select cm_id as icn_cm_id,cm_name as icn_cm_name from catalogue_master where cm_name in("icon_geo_location") )cm on(cm.icn_cm_id = cd.icn_cd_cm_id) '+
+        'left outer join (select cm_id as groupid,cm_name as groupname from catalogue_master )master on(master.groupname = cd.icn_cnt_name) '+
+        'left outer join (select cd_id as countryid,cd_name as country_name,cd_cm_id as m_groupid from catalogue_detail)mastercnt on(master.groupid =mastercnt.m_groupid))country '+
+        'inner join(select icc_country_name as cd_name, icc_country_id as cd_id from icn_country_currency) AS g_cd on(g_cd.cd_name = country.country_name) '+
+        'join multiselect_metadata_detail AS m ON cd_id = m.cmd_entity_detail '+
+        'LEFT JOIN `icn_store` AS s ON m.cmd_group_id = s.st_country_distribution_rights ',
+        function (err, IconCountry) {
+            callback(err, IconCountry );
+        }
+    );
+}
 exports.getVendorCountry = function( dbConnection, callback ) {
     dbConnection.query('SELECT distinct vd_id,vd_name,r_country_distribution_rights FROM'+
                        '(select * from icn_vendor_detail)vd '+
@@ -49,21 +75,54 @@ exports.getVendorCountry = function( dbConnection, callback ) {
 }
 
 exports.getCountries = function( dbConnection, callback ) {
-    dbConnection.query('select distinct cd_id,cd_name from '+
-                        '(select CASE  WHEN groupid is null THEN icn_cnt_name ELSE country_name  END AS country_name, ' +
-                        'CASE  WHEN groupid is null THEN icn_cnt ELSE countryid  END AS country_id,groupid from '+
-                        '(SELECT cd_id as icn_cnt,cd_name as icn_cnt_name ,cd_cm_id as icn_cd_cm_id FROM catalogue_detail)cd '+
-                        'inner join(select cm_id as icn_cm_id,cm_name as icn_cm_name from catalogue_master '+
-                        'where cm_name in("icon_geo_location") )cm on(cm.icn_cm_id = cd.icn_cd_cm_id) '+
-                        'left outer join (select cm_id as groupid,cm_name as groupname from catalogue_master )master on(master.groupname = cd.icn_cnt_name) ' , //+
-                        'left outer join (select cd_id as countryid,cd_name as country_name,cd_cm_id as m_groupid from catalogue_detail)mastercnt on(master.groupid =mastercnt.m_groupid))country ' +
-                       // 'inner join (select cd_id ,cd_name ,cd_cm_id,cm_id,cm_name  from catalogue_detail,catalogue_master where cm_id =cd_cm_id and cm_name in("global_country_list"))g_cd on(g_cd.cd_name =country.country_name)',
+    /*dbConnection.query('select distinct cd_id as icc_country_id,cd_name as icc_country_name from '+
+            '(select CASE  WHEN groupid is null THEN icn_cnt_name ELSE country_name  END AS country_name, ' +
+            'CASE  WHEN groupid is null THEN icn_cnt ELSE countryid  END AS country_id,groupid from '+
+            '(SELECT cd_id as icn_cnt,cd_name as icn_cnt_name ,cd_cm_id as icn_cd_cm_id FROM catalogue_detail)cd '+
+            'inner join(select cm_id as icn_cm_id,cm_name as icn_cm_name from catalogue_master '+
+            'where cm_name in("icon_geo_location") )cm on(cm.icn_cm_id = cd.icn_cd_cm_id) '+
+            'left outer join (select cm_id as groupid,cm_name as groupname from catalogue_master )master on(master.groupname = cd.icn_cnt_name) ' , //+
+            'left outer join (select cd_id as countryid,cd_name as country_name,cd_cm_id as m_groupid from catalogue_detail)mastercnt on(master.groupid =mastercnt.m_groupid))country ' +
+            'inner join(select icc_country_name as cd_name, icc_country_id as cd_id from icn_country_currency) AS g_cd on(g_cd.cd_name =country.country_name) ',*/
+    /*dbConnection.query('select distinct cd_id,cd_name from  (select CASE  WHEN groupid is null THEN icn_cnt_name ELSE country_name  END AS country_name, '+
+            'CASE  WHEN groupid is null THEN icn_cnt ELSE countryid  END AS country_id,groupid '+
+            'from  (SELECT cd_id as icn_cnt,cd_name as icn_cnt_name ,cd_cm_id as icn_cd_cm_id FROM catalogue_detail)cd '+
+            'inner join(select cm_id as icn_cm_id,cm_name as icn_cm_name from catalogue_master  where cm_name in("icon_geo_location") )cm on(cm.icn_cm_id = cd.icn_cd_cm_id) '+
+            'left outer join (select cm_id as groupid,cm_name as groupname from catalogue_master )master on(master.groupname = cd.icn_cnt_name) '+
+            'left outer join (select cd_id as countryid,cd_name as country_name,cd_cm_id as m_groupid from catalogue_detail)mastercnt on(master.groupid =mastercnt.m_groupid))country '+
+            'inner join(select icc_country_name as cd_name, icc_country_id as cd_id from icn_country_currency) AS g_cd on(g_cd.cd_name =country.country_name) ',*/
+   /* dbConnection.query('select cd_name, case when groupname is null then cd_id ELSE icn_country_id END AS cd_id, case when groupname is null  then  null ELSE "group"  END AS group_status '+
+            'from(select cm_id,cd_id as icn_country_id,cd_name,cd_cm_id from catalogue_master as a , catalogue_detail as b where a.cm_name in("icon_geo_location") and a.cm_id = b.cd_cm_id)cm '+
+            'left join (select icc_country_name as country_name, icc_country_id as cd_id from icn_country_currency) AS g_cd on(g_cd.country_name =cm.cd_name) '+
+            'left join(select cm_name as groupname from catalogue_master)cm_group on(cm_group.groupname =  cm.cd_name) ',*/
+       dbConnection.query('select case when groupname is null then icc_country_name ELSE cd.cd_name END AS cd_name, '+
+            'case when groupname is null then icc_country_id ELSE cd.cd_id END AS cd_id, '+
+            'case when groupname is null  then  null ELSE "group"  END AS group_status '+
+            'from catalogue_master as cm '+
+            'right join catalogue_detail as cd ON cm.cm_id = cd.cd_cm_id '+
+            'left join icn_country_currency AS g_cd on(g_cd.icc_country_name =cd.cd_name) '+
+            'left join (select cm_name as groupname from catalogue_master)cm_group on(cm_group.groupname =  cd.cd_name) '+
+            'WHERE cm.cm_name in("icon_geo_location") ',
         function ( err, countries ) {
             callback( err, countries );
         }
     );
 }
-
+exports.getCountries123 = function( dbConnection, callback ) {
+    dbConnection.query('select distinct cd_id,cd_name from '+
+            '(select CASE  WHEN groupid is null THEN icn_cnt_name ELSE country_name  END AS country_name, ' +
+            'CASE  WHEN groupid is null THEN icn_cnt ELSE countryid  END AS country_id,groupid from '+
+            '(SELECT cd_id as icn_cnt,cd_name as icn_cnt_name ,cd_cm_id as icn_cd_cm_id FROM catalogue_detail)cd '+
+            'inner join(select cm_id as icn_cm_id,cm_name as icn_cm_name from catalogue_master '+
+            'where cm_name in("icon_geo_location") )cm on(cm.icn_cm_id = cd.icn_cd_cm_id) '+
+            'left outer join (select cm_id as groupid,cm_name as groupname from catalogue_master )master on(master.groupname = cd.icn_cnt_name) ' +
+            'left outer join (select cd_id as countryid,cd_name as country_name,cd_cm_id as m_groupid from catalogue_detail)mastercnt on(master.groupid =mastercnt.m_groupid))country ' +
+            'inner join (select cd_id ,cd_name ,cd_cm_id,cm_id,cm_name  from catalogue_detail,catalogue_master where cm_id =cd_cm_id and cm_name in("global_country_list"))g_cd on(g_cd.cd_name =country.country_name)',
+        function ( err, countries ) {
+            callback( err, countries );
+        }
+    );
+}
 exports.getStores = function( dbConnection, callback ) {
     dbConnection.query('select * from icn_store',
         function (err, stores) {

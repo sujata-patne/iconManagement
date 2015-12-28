@@ -313,7 +313,6 @@ exports.AddEditStore = function (req, res, next) {
                                                                                 }
                                                                                 storeManager.createIcnStore( connection_ikon_cms, store, function( err, result ) {
                                                                                     if (err) {
-                                                                                        console.log(err.message, 1)
                                                                                         connection_ikon_cms.release();
                                                                                         res.status(500).json(err.message);
                                                                                     } else {
@@ -343,7 +342,6 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                 };
                                                                                                 storeManager.createIcnLoginDetail( connection_ikon_cms, storeuser, function( err, result ) {
                                                                                                     if (err) {
-                                                                                                        console.log(err.message, 2)
                                                                                                         connection_ikon_cms.release();
                                                                                                         res.status(500).json(err.message);
                                                                                                     } else {

@@ -19,19 +19,19 @@ exports.getassignrights = function (req, res, next) {
                                     callback(err, MasterList);
                                 });
                             },
-                            /*PaymentTypes: function (callback) {
-                                assingRightsManager.getPaymentTypes( connection_billing_gateway, function( err, PaymentTypes  ) {
-                                    callback(err, PaymentTypes);
-                                });
-                            },
-                            PartnerDistibutionChannels: function (callback) {
-                                assingRightsManager.getpartnerDistibutionChannels( connection_billing_gateway, function( err, PartnerDistibutionChannels  ) {
-                                    callback(err, PartnerDistibutionChannels);
-                                });
-                            },*/
                             ContentTypes: function (callback) {
                                 assingRightsManager.getContentTypes( connection_ikon_cms, function( err, ContentTypes  ) {
                                     callback(err, ContentTypes);
+                                });
+                            },
+                            IconCountry: function (callback) {
+                                assingRightsManager.getIconCountry( connection_ikon_cms, function( err, IconCountry  ) {
+                                    callback(err, IconCountry);
+                                });
+                            },
+                            IconGroupCountry: function (callback) {
+                                assingRightsManager.getIconCountryGroup( connection_ikon_cms, function( err, IconCountryGroup  ) {
+                                    callback(err, IconCountryGroup);
                                 });
                             },
                             VendorCountry: function (callback) {
@@ -88,7 +88,6 @@ exports.getassignrights = function (req, res, next) {
                                 callback(null, req.session.icon_UserRole);
                             }
                         }, function (err, results) {
-
                             if (err) {
                                 connection_ikon_cms.release();
                                 res.status(500).json(err.message);

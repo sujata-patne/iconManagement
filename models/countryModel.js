@@ -1,7 +1,9 @@
 exports.getCountryList = function( dbConnection, callback ){
-    dbConnection.query('select * from (SELECT * FROM catalogue_detail)cd ' +
-                        'inner join(select * from catalogue_master where cm_name in("country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)  ' +
-                        'order by cd.cd_name', //"global_country_list",
+    /*dbConnection.query('select * from (SELECT * FROM catalogue_detail)cd ' +
+                        'inner join(select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)  ' +
+                        'order by cd.cd_name', //"global_country_list",*/
+    dbConnection.query('select *, cd_name as icc_country_name ,  cd_id as icc_country_id from (SELECT * FROM catalogue_detail)cd '+
+    'inner join(select * from catalogue_master where cm_name in("country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id) ',
         function (err, countryList) {
             callback(err, countryList);
         }
