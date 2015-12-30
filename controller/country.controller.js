@@ -32,6 +32,7 @@ exports.getcountrydata = function (req, res, next) {
                             callback(null, req.session.icon_UserRole);
                         }
                     }, function (err, results) {
+
                         if (err) {
                             connection_ikon_cms.release();
                             res.status(500).json(err.message);
@@ -198,8 +199,8 @@ exports.submitcountry = function (req, res, next) {
                                                                                             var icon_country = {
                                                                                                 cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                                                                 cd_cm_id: Groupid,
-                                                                                                cd_name: req.body.AddCountryForGroup[i].icc_country_name,
-                                                                                                cd_display_name: req.body.AddCountryForGroup[i].icc_country_name,
+                                                                                                cd_name: req.body.AddCountryForGroup[i].cd_name,
+                                                                                                cd_display_name: req.body.AddCountryForGroup[i].cd_name,
                                                                                                 cd_desc: null,
                                                                                                 cd_desc1: null
                                                                                             }
@@ -251,8 +252,8 @@ exports.submitcountry = function (req, res, next) {
                                             var icon_country = {
                                                 cd_id: row[0].id != null ? (parseInt(row[0].id) + 1) : 1,
                                                 cd_cm_id: req.body.group_id,
-                                                cd_name: req.body.AddCountryForGroup[i].icc_country_name,
-                                                cd_display_name: req.body.AddCountryForGroup[i].icc_country_name,
+                                                cd_name: req.body.AddCountryForGroup[i].cd_name,
+                                                cd_display_name: req.body.AddCountryForGroup[i].cd_name,
                                                 cd_desc: null,
                                                 cd_desc1: null
                                             }

@@ -18,7 +18,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         var CountryList = [];
         _.each($scope.AllCountryList, function (cnt) {
             var data = _.find(CountryData, function (managecnt) {
-                return cnt.icc_country_name == managecnt.cd_name
+                return cnt.cd_name == managecnt.cd_name
             })
             if (!data) {
                 CountryList.push(cnt);
@@ -74,7 +74,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         var AddArray = [];
         _.each(TotalData, function (total) {
             var data = _.find(OldData, function (old) {
-                return old.icc_country_name == total.icc_country_name });
+                return old.cd_name == total.cd_name });
             if (!data) {
                 AddArray.push(total);
             }
@@ -83,7 +83,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     }
     $scope.add_countries = function () {
         _.each($scope.selectedCountries, function (selected) {
-            var index = _.findIndex($scope.CountryList, function (cnt) { return cnt.icc_country_name == selected })
+            var index = _.findIndex($scope.CountryList, function (cnt) { return cnt.cd_name == selected })
             if (index > -1) {
                 var data = $scope.CountryList[index];
                 $scope.ManagedCountrys.push(data);
@@ -97,7 +97,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     function GetGroupCountry(CountryData) {
         var CountryList = [];
         _.each($scope.AllCountryList, function (cnt) {
-            var data = _.find(CountryData, function (managecnt) { return cnt.icc_country_name == managecnt.cd_name })
+            var data = _.find(CountryData, function (managecnt) { return cnt.cd_name == managecnt.cd_name })
             if (!data) {
                 CountryList.push(cnt);
             }
@@ -135,7 +135,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
 
     $scope.left_countries = function () {
          _.each($scope.SelectedPendingCountry, function (selected) {
-            var index = _.findIndex($scope.GroupPendingCountry, function (cnt) { return cnt.icc_country_name == selected })
+            var index = _.findIndex($scope.GroupPendingCountry, function (cnt) { return cnt.cd_name == selected })
             if (index > -1) {
                 var data = $scope.GroupPendingCountry[index];
                 $scope.GroupCountry.push(data);
@@ -147,7 +147,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
 
     $scope.right_countries = function () {
         _.each($scope.SelectedGroupCountry, function (selected) {
-            var index = _.findIndex($scope.GroupCountry, function (cnt) { return cnt.icc_country_id == selected })
+            var index = _.findIndex($scope.GroupCountry, function (cnt) { return cnt.cd_id == selected })
             if (index > -1) {
                 var data = $scope.GroupCountry[index];
                 $scope.GroupPendingCountry.push(data);
