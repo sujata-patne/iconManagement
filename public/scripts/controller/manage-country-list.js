@@ -48,7 +48,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         _.each($scope.OldManageCountry, function (cnt) {
             $scope.ManagedCountrys.push(cnt);
         })
-        console.log($scope.ManagedCountrys)
         $scope.AllGroups = _.where(country.CountryList, { cm_name: "country_group" });
         $scope.AllGroups.unshift({ cd_id: -1, cd_name: "Add New Group" });
         $scope.ManagedGroupCountry = country.CountryGroups;
@@ -106,6 +105,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     }
 
     $scope.SelectGroupChange = function () {
+
         if (!$scope.SelectedGroup || $scope.SelectedGroup == "") {
             $scope.groupcountryvisible = false;
             $scope.addgroupvisible = false;
@@ -121,6 +121,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
             $scope.groupcountryvisible = true;
         }
         else {
+
             var groupcountry = _.where($scope.ManagedGroupCountry, { cm_name: $scope.SelectedGroup });
              $scope.OldGroupPendingCountry = [];
             _.each(groupcountry, function (country) {
@@ -189,8 +190,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
 
             var group;
             if (!$scope.SelectedGroup || $scope.SelectedGroup == "") {
-                console.log('new country')
-                group = {
+                 group = {
                     status: "NoGroup",
                     group_id: $scope.SelectedGroup,
                     group_name: '',
@@ -202,7 +202,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 }
             }
             else if ($scope.SelectedGroup == "Add New Group") {
-                console.log('new group')
 
                 if ($scope.NewGroupName && $scope.NewGroupName != "") {
                     var index = _.findIndex($scope.AllGroups, function (cnt) { return cnt.cd_name.toLowerCase() == $scope.NewGroupName.toLowerCase() })
@@ -241,12 +240,10 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 }
             }
             else {
-                console.log('update country')
-
                 if ($scope.GroupCountry.length > 0) {
                     group = {
                         status: "UpdateGroup",
-                        group_id: _.find($scope.ManagedGroupCountry, function (managegroup) { return managegroup.cm_name == $scope.SelectedGroup }).cm_id,
+                        group_id: ($scope.ManagedGroupCountry.length > 0)? _.find($scope.ManagedGroupCountry, function (managegroup) { return managegroup.cm_name == $scope.SelectedGroup }).cm_id:$scope.SelectedGroup,
                         group_name: '',
                         icon_content_type: $scope.icon_content_type,
                         content_group: $scope.content_group,
@@ -254,8 +251,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                         DeleteCountryForGroup: GetDeleteNewCountryInGroup($scope.OldGroupPendingCountry, $scope.GroupCountry, $scope.SelectedGroup),
                         ChangedCountry: GetAddNewCountryInIcon($scope.OldManageCountry, $scope.ManagedCountrys)
                     }
-                    console.log('group')
-                    console.log(group)
                 }
                 else {
                     $scope.error = "Please select country for Group.";
@@ -263,7 +258,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 }
             }
             if (group) {
-                console.log(group.DeleteCountryForGroup)
 
                 if (group.ChangedCountry.length > 0 || group.AddCountryForGroup.length > 0 || group.DeleteCountryForGroup.length > 0) {
                     ngProgress.start();

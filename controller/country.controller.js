@@ -107,6 +107,7 @@ exports.submitcountry = function (req, res, next) {
                                             cd_desc: null,
                                             cd_desc1: null
                                         }
+                                        console.log(icon_country);
                                         countryManager.createCatalogDetailForCountry( connection_ikon_cms, icon_country, function (err, result) {
                                             if (err) {
                                                 connection_ikon_cms.release();

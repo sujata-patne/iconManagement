@@ -69,6 +69,7 @@ exports.createCountryMasterGroup = function( dbConnection, country_master_group,
 }
 
 exports.deleteCountryByGroupId = function( dbConnection, cd_id, groupId, callback ) {
+    console.log('select * from catalogue_detail WHERE cd_id= '+cd_id+' and  cd_cm_id =' +groupId)
     dbConnection.query('DELETE FROM catalogue_detail WHERE cd_id= ? and  cd_cm_id =?',
         [cd_id, groupId],
         function (err, row, fields) {
