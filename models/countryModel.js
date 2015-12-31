@@ -90,8 +90,9 @@ exports.getCountryGroups = function( dbConnection, callback ) {
             'inner join catalogue_master as cm on(cm.cm_id = cd.cd_cm_id) ' +
             'inner join catalogue_master as cm_group on(cm_group.cm_name = cd.cd_name) ' +
             'inner join catalogue_detail as cd_group on(cd_group.cd_cm_id = cm_group.cm_id)' +
-            'left join (select icc_country_name as country_name, icc_country_id as cd_id from icn_country_currency) AS g_cd on(g_cd.country_name =cd_group.cd_name) ' +
-            'where cm.cm_name in("country_group") ',
+            'left join catalogue_detail AS g_cd on(g_cd.cd_name =cd_group.cd_name) ' +
+            //'left join (select icc_country_name as country_name, icc_country_id as cd_id from icn_country_currency) AS g_cd on(g_cd.country_name =cd_group.cd_name) ' +
+            'where cm.cm_name in("country_group") group by g_cd.cd_id ',
         function (err, countryGroups ) {
             callback( err, countryGroups );
         }

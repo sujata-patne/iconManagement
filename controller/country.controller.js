@@ -107,7 +107,6 @@ exports.submitcountry = function (req, res, next) {
                                             cd_desc: null,
                                             cd_desc1: null
                                         }
-                                        console.log(icon_country);
                                         countryManager.createCatalogDetailForCountry( connection_ikon_cms, icon_country, function (err, result) {
                                             if (err) {
                                                 connection_ikon_cms.release();
@@ -284,6 +283,7 @@ exports.submitcountry = function (req, res, next) {
                         }
                     }
                     function DeleteGroupCountry() {
+                        console.log(req.body.DeleteCountryForGroup);
                         var storelength = req.body.DeleteCountryForGroup.length;
                         if (storelength > 0) {
                             var count = 0;

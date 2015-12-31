@@ -146,6 +146,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     }
 
     $scope.right_countries = function () {
+
         _.each($scope.SelectedGroupCountry, function (selected) {
             var index = _.findIndex($scope.GroupCountry, function (cnt) { return cnt.cd_id == selected })
             if (index > -1) {
@@ -154,6 +155,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 $scope.GroupCountry.splice(index, 1);
             }
         })
+
         $scope.SelectedGroupCountry = [];
     }
 
@@ -169,6 +171,8 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     }
     function GetDeleteNewCountryInGroup(OldData, TotalData, group_id) {
         var DeleteArray = [];
+        console.log('TotalData')
+        console.log(TotalData)
         _.each(OldData, function (old) {
             var data = _.find(TotalData, function (total) { return old.cd_name == total.cd_name });
             if (!data) {
@@ -250,6 +254,8 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                         DeleteCountryForGroup: GetDeleteNewCountryInGroup($scope.OldGroupPendingCountry, $scope.GroupCountry, $scope.SelectedGroup),
                         ChangedCountry: GetAddNewCountryInIcon($scope.OldManageCountry, $scope.ManagedCountrys)
                     }
+                    console.log('group')
+                    console.log(group)
                 }
                 else {
                     $scope.error = "Please select country for Group.";
@@ -257,7 +263,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 }
             }
             if (group) {
-                console.log(group.ChangedCountry)
+                console.log(group.DeleteCountryForGroup)
 
                 if (group.ChangedCountry.length > 0 || group.AddCountryForGroup.length > 0 || group.DeleteCountryForGroup.length > 0) {
                     ngProgress.start();
