@@ -172,8 +172,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     }
     function GetDeleteNewCountryInGroup(OldData, TotalData, group_id) {
         var DeleteArray = [];
-        console.log('TotalData')
-        console.log(TotalData)
         _.each(OldData, function (old) {
             var data = _.find(TotalData, function (total) { return old.cd_name == total.cd_name });
             if (!data) {
@@ -187,7 +185,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         $scope.errorvisible = false;
         $scope.successvisible = false;
         if (isValid) {
-
             var group;
             if (!$scope.SelectedGroup || $scope.SelectedGroup == "") {
                  group = {
@@ -258,7 +255,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 }
             }
             if (group) {
-
                 if (group.ChangedCountry.length > 0 || group.AddCountryForGroup.length > 0 || group.DeleteCountryForGroup.length > 0) {
                     ngProgress.start();
                     Countrys.SubmitCountrys(group, function (country) {
@@ -280,7 +276,17 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                         ngProgress.complete();
                     });
                 }
+                else{
+                    console.log('sdfsd')
+                    toastr.success('Nothing Changed To Save');
+                    $scope.successvisible = true;
+                }
             }
+
+        }
+        else{
+             toastr.success('Nothing Changed To Save');
+            $scope.successvisible = true;
         }
     }
 });
