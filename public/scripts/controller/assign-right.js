@@ -106,7 +106,6 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                         }
                     });
 
-
                     //&& _.contains($scope.SelectedStore, channel.partner_store_fronts) });
                     var channelarray = [];
 
@@ -118,14 +117,11 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                             channelarray.push(channel.partner_id);
 
                             $scope.PaymentChannels[channel.partner_id] = channel.partner_name;
-
                         }
                     });
                 }
             })
         })
-
-        $scope.PaymentChannels = _.uniq($scope.PaymentChannels);
     }
 
 
@@ -207,19 +203,16 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             var match = _.find($scope.CountryGroups, function (country) {
                 return country.cd_id == item });
             if (match) {
-                console.log('IconGroupCountry')
-                console.log($scope.IconGroupCountry)
+
                 var groupcountry = _.where($scope.IconGroupCountry, { cm_name: match.cd_name });
-                console.log('groupcountry')
-                console.log(groupcountry)
+
                 _.each(groupcountry, function (item) {
 
                     country.push(item.cd_id);
                 });
             }
         });
-        console.log('country')
-        console.log(country)
+
         country = _.unique(country);
 
         return country;

@@ -56,7 +56,7 @@
                             <label for="selectpaymentchannel" class="col-sm-3 control-label"><span class="asterisk">*</span>Select Payment Channel</label>
                             <div class="col-sm-9">
                                 <span class="ui-select">
-                                    <select name="selectpaymentchannel" class="form-control" multiple data-ng-model="SelectedPaymentChannel"  ng-options="key|number as value for (key, value) in PaymentChannels"  required>
+                                    <select name="selectpaymentchannel" class="form-control" multiple data-ng-model="SelectedPaymentChannel"  ng-options="key|number as value for (key, value) in PaymentChannels "  required>
                                         <!--data-ng-options="item.partner_id as item.partner_payment_name for item in PaymentChannels"-->
                                         <!--<option value="">-- Select Payment Channel --</option>-->
                                     </select>
