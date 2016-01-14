@@ -341,7 +341,6 @@ exports.updateassignright = function (req, res, next) {
                             });
                         };
                     }
-
                 });
             }
             else {

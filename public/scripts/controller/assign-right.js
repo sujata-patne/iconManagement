@@ -117,13 +117,15 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
                         if (channelarray.indexOf(channel.partner_id) === -1) {
                             channelarray.push(channel.partner_id);
 
-                            $scope.PaymentChannels[channel.partner_id] = channel.partner_payment_name;
+                            $scope.PaymentChannels[channel.partner_id] = channel.partner_name;
 
                         }
                     });
                 }
             })
         })
+
+        $scope.PaymentChannels = _.uniq($scope.PaymentChannels);
     }
 
 
