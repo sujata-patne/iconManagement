@@ -132,7 +132,6 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
              $scope.addgroupvisible = false;
             $scope.groupcountryvisible = true;
         }
-        console.log($scope.GroupCountry)
     }
 
     $scope.left_countries = function () {

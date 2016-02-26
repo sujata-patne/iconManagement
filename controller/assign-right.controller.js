@@ -326,7 +326,7 @@ exports.updateassignright = function (req, res, next) {
                         function deleteloop(count) {
                             assingRightsManager.deleteMultiSelectMetaDataDetail( connection_ikon_cms, req.body.DeleteAssignRights[count].cmd_group_id, req.body.DeleteAssignRights[count].cmd_entity_detail, function( err, row, fields ) {
                                 if (err) {
-                                    connection_ikon_cms.release();
+                                    connection_ikon_cms.release(); ;
                                     res.status(500).json(err.message);
                                 }
                                 else {
@@ -341,6 +341,7 @@ exports.updateassignright = function (req, res, next) {
                             });
                         };
                     }
+
                 });
             }
             else {

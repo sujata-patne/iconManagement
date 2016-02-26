@@ -94,7 +94,7 @@
                                     <label for="selectedcountries" class=" col-sm-3 control-label">Selected :  </label>
                                     <div class="col-sm-9">
                                         <span class="ui-select">
-                                            <select name="selectedcountries" class="form-control" data-ng-model="SelectedGroupCountry" data-ng-options="country.cd_id as country.cd_name for country in GroupCountry | unique:'cd_name'" multiple>
+                                            <select name="selectedcountries" class="form-control" data-ng-model="SelectedGroupCountry" data-ng-options="country.cd_id as country.cd_name for country in GroupCountry" multiple>
                                             </select>
                                         </span>
                                     </div>
