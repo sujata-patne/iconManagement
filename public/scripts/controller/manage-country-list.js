@@ -123,7 +123,8 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
         else {
 
             var groupcountry = _.where($scope.ManagedGroupCountry, { cm_name: $scope.SelectedGroup });
-             $scope.OldGroupPendingCountry = [];
+           // console.log(groupcountry)
+            $scope.OldGroupPendingCountry = [];
             _.each(groupcountry, function (country) {
                 $scope.OldGroupPendingCountry.push(country);
             });
