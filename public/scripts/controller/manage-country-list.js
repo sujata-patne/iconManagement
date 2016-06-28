@@ -183,6 +183,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
     }
 
     $scope.SubmitForm = function (isValid) {
+
         $scope.errorvisible = false;
         $scope.successvisible = false;
         if (isValid) {
@@ -238,6 +239,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 }
             }
             else {
+
                 if ($scope.GroupCountry.length > 0) {
                     group = {
                         status: "UpdateGroup",
@@ -256,6 +258,7 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                 }
             }
             if (group) {
+
                 if (group.ChangedCountry.length > 0 || group.AddCountryForGroup.length > 0 || group.DeleteCountryForGroup.length > 0) {
                     ngProgress.start();
                     Countrys.SubmitCountrys(group, function (country) {
@@ -272,18 +275,18 @@ myApp.controller('manageCountryListCtrl', function ($scope, $http, ngProgress, $
                         }
                         ngProgress.complete();
                     }, function (error) {
+
                         toastr.error(error);
                         $scope.errorvisible = true;
+
                         ngProgress.complete();
                     });
                 }
                 else{
-                    console.log('sdfsd')
                     toastr.success('Nothing Changed To Save');
                     $scope.successvisible = true;
                 }
             }
-
         }
         else{
              toastr.success('Nothing Changed To Save');

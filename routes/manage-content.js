@@ -1,5 +1,7 @@
 var managecontent = require('../controller/manage-content.controller');
 module.exports = function (app) {
+    app.route('/*')
+        .all(managecontent.allAction);
     app.route('/getmanagecontent')
       .post(managecontent.getmanagecontentdata)
     app.route('/addeditcontenttype')

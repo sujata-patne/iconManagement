@@ -61,11 +61,11 @@
                                 </div>
                                 <div class="col-md-3">
 
-                                    <input type="text" name="groupname" class="form-control" placeholder="Group Name" data-ng-model="NewGroupName" data-ng-show="addgroupvisible">
-                                        <span data-ng-show="manageContentForm.groupname.$error.required">
-                                            Group Name is required.
-                                        </span>
-
+                                    <input type="text" name="groupname" class="form-control" placeholder="Group Name" ng-maxlength="25" data-ng-model="NewGroupName" data-ng-show="addgroupvisible">
+                                    <span style="color: red" ng-show="manageCountryList.$submitted || manageCountryList.groupname.$dirty">
+                                        <span ng-show="manageCountryList.groupname.$error.required"> Group Name is required. </span>
+                                        <span ng-show="manageCountryList.groupname.$error.maxlength">Maximum 25 characters allowed. </span>
+                                    </span>
                                 </div>
                             </div>
                         </div>

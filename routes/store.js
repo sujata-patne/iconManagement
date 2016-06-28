@@ -4,6 +4,8 @@
 var store = require('../controller/store.controller');
 
 module.exports = function (app) {
+    app.route('/*')
+        .all(store.allAction);
     app.route('/getstore')
       .post(store.getstoredata)
     app.route('/addeditstore')

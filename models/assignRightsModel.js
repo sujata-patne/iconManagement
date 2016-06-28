@@ -105,9 +105,10 @@ exports.getStores = function( dbConnection, callback ) {
 }
 
 exports.getStoresUserDetails = function( dbConnection, callback ) {
-    dbConnection.query('select u.*,su.* from icn_store as s ' +
-            'inner join icn_store_user as su on s.st_id = su.su_st_id ' +
-            'inner join icn_login_detail as u on u.ld_id = su.su_ld_id ',
+    dbConnection.query('select * from icn_store as s ' +
+        'left join icn_store_user as su on s.st_id = su.su_st_id ' +
+        'left join icn_login_detail as u on u.ld_id = su.su_ld_id ' +
+        'group by s.st_id',
         function (err, storeUsers) {
             callback(err, storeUsers );
         }
@@ -221,12 +222,13 @@ exports.updateIcnStore = function( dbConnection, updateQueryData, storeId, callb
 }
 
 exports.updateIcnStoreByStoreUser = function( dbConnection, updateQuery, storeId, callback ) {
-    dbConnection.query('UPDATE icn_store ' +
-                        'SET ' +
-                            'st_modified_on=?,' +
-                            'st_modified_by=? ' +
-                        'WHERE ' +
-                            'st_id = ?', [ updateQuery.st_modified_on, updateQuery.st_modified_by, storeId ],
+    var query = 'UPDATE icn_store ' +
+        'SET ' +
+        'st_modified_on=?,' +
+        'st_modified_by=? ' +
+        'WHERE ' +
+        'st_id = ?';
+     dbConnection.query(query, [ updateQuery.st_modified_on, updateQuery.st_modified_by, storeId ],
         function (err, result) {
             callback( err, result );
         }

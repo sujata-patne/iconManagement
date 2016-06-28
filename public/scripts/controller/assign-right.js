@@ -1,6 +1,7 @@
-
 myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateParams, AssignRights, $state, _, $window,$timeout) {
     $('.removeActiveClass').removeClass('active');
+    $('.removeSubactiveClass').removeClass('active');
+
     $('#assign-right').addClass('active');
     $scope.success = "";
     $scope.successvisible = false;
@@ -93,6 +94,8 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     }
 
     $scope.getPaymentChannels = function(){
+        console.log('$scope.SelectedGeoLocation');
+        console.log($scope.SelectedGeoLocation);
         $scope.PaymentChannels = [];
         var countries = GetSelectedCountry($scope.SelectedGeoLocation);
         var channelarray = [];
@@ -261,7 +264,7 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
     }
 
     $scope.resetForm = function () {
-$scope.PaymentTypes = [];
+        $scope.PaymentTypes = [];
         $scope.Countrys = [];
         $scope.PaymentChannels = [];
         $scope.Vendors = [];

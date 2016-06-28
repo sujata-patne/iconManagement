@@ -7,7 +7,6 @@ myApp.service('Users', ['$http', function ($http) {
             success(items);
         });
     }
-
     service.updateUser = function(data,success){
         $http.post(service.baseRestUrl + '/updateUsers', data).success(function (items) {
             success(items);
@@ -18,18 +17,15 @@ myApp.service('Users', ['$http', function ($http) {
             success(items);
         });
     }
-
     service.addEditUsers = function(data,success){
         $http.post(service.baseRestUrl + '/addEditUsers',data).success(function (items) {
             success(items);
         });
     }
-
     service.changePassword = function(data,success){
         $http.post(service.baseRestUrl + '/changepassword',data).success(function (items) {
             success(items);
         });
     }
-
     return service;
 }]);

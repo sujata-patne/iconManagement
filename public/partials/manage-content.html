@@ -29,9 +29,10 @@
                         <div class="form-group">
                             <label class="col-sm-3 control-label"><span class="asterisk">*</span>New Content Type:</label>
                             <div class="col-sm-9">
-                                <input ng-ena="CurrentPage === 'edit-content'" type="text" name="newcontenttype" class="form-control" placeholder="Content Name" data-ng-model="NewContentType" required>
+                                <input ng-ena="CurrentPage === 'edit-content'" type="text" name="newcontenttype" class="form-control" ng-maxlength="200"   placeholder="Content Name" data-ng-model="NewContentType" required>
                                 <span style="color: red" ng-show="manageContentForm.$submitted || manageContentForm.newcontenttype.$dirty">
                                     <span ng-show="manageContentForm.newcontenttype.$error.required">New Content Type is required. </span>
+                                    <span ng-show="manageContentForm.newcontenttype.$error.maxlength">Maximum 200 characters allowed. </span>
                                 </span>
                             </div>
                         </div>

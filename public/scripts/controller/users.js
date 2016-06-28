@@ -1,37 +1,182 @@
- 
-var site_base_path = '';
-//var site_base_path = 'http://dailymagic.in';
-myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $timeout, Users, $state) {
-    $scope.base_url = site_base_path;
+myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $stateParams, UserRights,Users, $state, _, $window,$timeout) {
     $('.removeActiveClass').removeClass('active');
     $('.removeSubactiveClass').removeClass('active');
-    $('#changepassword').addClass('active');
-
-    $scope.Permission = true;
-    $scope.IsDisable = true;
-    $scope.Vendor = [];
-    $scope.Users = [];
-    $scope.UserRole = [];
-    $scope.SelectedUserRole = 0;
-    $scope.UserList = [];
+    $('#add-user').addClass('active');
+    $scope.success = "";
     $scope.successvisible = false;
-    $scope.success = false;
+    $scope.error = "";
     $scope.errorvisible = false;
-    $scope.error = false;
-    $scope.passwordtype = "password";
-    $scope.newpasswordtype = "password";
-    $scope.confirmpasswordtype = "password";
-
-    $scope.usercurrentPage = 0;
-    $scope.userpageSize = 5;
-
-    $scope.connectionError = false;
-    $scope.error;
-
     ngProgress.color('yellowgreen');
     ngProgress.height('3px');
+    $scope.CurrentPage = $state.current.name;
+    $scope.IsAddUser = $scope.CurrentPage == "edit-user" ? false : true;
+    $scope.PageTitle = $scope.CurrentPage == "edit-user" ? "Edit" : "Add";
+     $scope.SelectedRoleModule = {};
+    $scope.jetPayDetials = [];
+    $scope.currentPageNo = 0;
+    $scope.pageLimit = 10;
+    $scope.SelectedStores= [];
+    $scope.ExistingStores = [];
+    $scope.DeletingStores = [];
+    $scope.orderByField = 'ld_id'; //Added orderByField and reverseSort paramenter in input object for sorting and pagination banners list.
+    $scope.reverseSort = true;
+    $scope.sortIcon = "fa fa-caret-down";
 
-    $scope.addEditUsers = function (id) {
+    /**
+     * @desc open datepicker for start date
+     * @param evt
+     */
+    $scope.openDatepicker = function (evt) {
+        $scope.open = true;
+        evt.preventDefault();
+        evt.stopPropagation();
+    }    // Get Users,Modules,Roles,Vendors,Stores,Role-Module Mappings for binding to UI controls
+
+    UserRights.GetUserRights({ state: $scope.CurrentPage }, function (userrights) {
+         $scope.StoresList = userrights.StoresList;
+        $scope.VendorList = userrights.Vendors;
+        $scope.UserIdList = userrights.UserIds;
+        $scope.Users = GetUserData(userrights.UserIds);
+
+        $scope.Modules=userrights.Modules;
+        $scope.Roles=userrights.Roles;
+        $scope.RoleModuleMappings = userrights.RoleModuleMappings;
+        $scope.SelectedStores = [];
+        $scope.DeletingStores = [];
+        if ($scope.CurrentPage == "edit-user") {
+            $scope.Users.forEach(function (value) {
+                if (value.ld_id == $stateParams.id) {
+                    $scope.ExistingStores = [];
+                    $scope.UserId = value.ld_id;
+                    $scope.FullName = value.ld_display_name;
+                    $scope.UserName = value.ld_user_name;
+                    $scope.EmailId = value.ld_email_id;
+                    $scope.MobileNo = value.ld_mobile_no;
+                    $scope.SelectedUserRole = value.ld_role;
+                    $scope.AccountExpire = setDate(value.account_validity);
+                     if(value.stores != null){
+                        value.stores.split(',').forEach(function(store){
+                            $scope.ExistingStores.push(parseFloat(store));
+                        })
+                        $scope.SelectedStores = angular.copy($scope.ExistingStores);
+                    }
+                }
+            });
+        }
+    }, function (error) {
+        $scope.error = error;
+        $scope.errorvisible = true;
+    });
+
+    $scope.backToAdd = function () {
+        $state.go('add-user')
+    }
+    //Added orderBy function for sorting and pagination published banners list
+    $scope.OrderBy=function (orderByField,reverseSort) {
+        var sortOrder = reverseSort==true?"asc":"desc";
+        $scope.sortIcon = reverseSort==false?"fa fa-caret-up":"fa fa-caret-down";
+        $scope.listCriteria = {
+            perPageItems: 10,
+            currentPage: $scope.CurrentPage,
+            totalItemsFound: 0,
+             orderBy:orderByField +" "+sortOrder
+        };
+        UserRights.GetUserRights($scope.listCriteria, function (userrights) {
+            $scope.StoresList = userrights.StoresList;
+            $scope.VendorList = userrights.Vendors;
+            $scope.UserIdList = userrights.UserIds;
+            $scope.Users = GetUserData(userrights.UserIds);
+            $scope.Modules=userrights.Modules;
+            $scope.Roles=userrights.Roles;
+            $scope.RoleModuleMappings = userrights.RoleModuleMappings;
+            $scope.SelectedStores = [];
+            $scope.DeletingStores = [];
+            if ($scope.CurrentPage == "edit-user") {
+                $scope.Users.forEach(function (value) {
+                    if (value.ld_id == $stateParams.id) {
+                        $scope.ExistingStores = [];
+                        $scope.UserId = value.ld_id;
+                        $scope.FullName = value.ld_display_name;
+                        $scope.UserName = value.ld_user_name;
+                        $scope.EmailId = value.ld_email_id;
+                        $scope.MobileNo = value.ld_mobile_no;
+                        $scope.SelectedUserRole = value.ld_role;
+                        $scope.AccountExpire = setDate(value.account_validity);
+                        if(value.stores != null){
+                            value.stores.split(',').forEach(function(store){
+                                $scope.ExistingStores.push(parseFloat(store));
+                            })
+                            $scope.SelectedStores = angular.copy($scope.ExistingStores);
+                        }
+                    }
+                });
+            }
+        }, function (error) {
+            $scope.error = error;
+            $scope.errorvisible = true;
+        });
+    };
+
+    /**
+     * Set Deleted Stores in an array
+     * @constructor
+     */
+   $scope.SelectStoresChange = function () {
+       $scope.DeletingStores = GetDeleteStores($scope.ExistingStores,$scope.SelectedStores);
+
+       console.log('$scope.SelectedStores')
+       console.log($scope.SelectedStores)
+       console.log('$scope.DeletingStores')
+       console.log($scope.DeletingStores)
+    }
+    /**
+     * Get Deleted Vendors List
+     * @param Oldvendors
+     * @param SelectedVendors
+     * @returns {Array}
+     * @constructor
+     */
+    function GetDeleteStores(ExistingStores, SelectedStores) {
+        var DeleteArray = [];
+        _.each(ExistingStores, function (oldStore) {
+            data = _.find(SelectedStores, function (selected, key) { return selected == oldStore; });
+            if (!data) {
+                DeleteArray.push(parseInt(oldStore));
+            }
+        });
+        return DeleteArray;
+    }
+
+    /**
+     * Get added Vendors List
+     * @param Oldvendors
+     * @param SelectedVendors
+     * @returns {Array}
+     * @constructor
+     */
+   function GetAddStores(ExistingStores, SelectedStores) {
+        var AddArray = [];
+        _.each(SelectedStores, function (selected) {
+            data = _.find(ExistingStores, function (oldStore, key) { return selected == oldStore; });
+            if (!data) {
+                AddArray.push(parseInt(selected));
+            }
+        });
+        /*_.each(ExistingStores, function (oldStore) {
+            data = _.find(SelectedStores, function (selected, key) { return selected == oldvendor; });
+            if (!data) {
+                AddArray.push(parseInt(oldStore));
+            }
+        });*/
+        return AddArray;
+   }
+
+   function validateEmail(email) {
+        var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+        return re.test(email);
+
+    }
+   $scope.addEditUsers = function (id) {
         $scope.error = "";
         $scope.success = "";
         Users.addEditUsers({ ld_id: id }, function (user) {
@@ -41,195 +186,191 @@ myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $timeout, Use
                 $scope.UserName = user.UserData[0].ld_user_name;
                 $scope.EmailId = user.UserData[0].ld_email_id;
                 $scope.MobileNo = user.UserData[0].ld_mobile_no;
-                $scope.SelectedUserRole = user.UserData[0].ld_role;
                 $scope.ld_Id = user.UserData[0].ld_id;
+
             }
             else {
                 location.href = "/";
             }
         });
     }
-
-    $scope.SaveUserDetails = function () {
+   $scope.SaveUserDetails = function (isValid) {
         $scope.NameValidation = false;
         $scope.UserNameValidation = false;
         $scope.EmailValidation = false;
         $scope.MobileValidation = false;
-        $scope.RoleValidationVisible = false;
+        $scope.StoreValidationVisible = false;
         $scope.VendorValidation = false;
 
         $scope.errorvisible = false;
         $scope.error = "";
         $scope.success = "";
+        if(isValid) {
+            if ($scope.FullName != "") {
+                if ($scope.UserName != "") {
+                    if ($scope.EmailId != "" && validateEmail($scope.EmailId)) {
+                        if (!isNaN($scope.MobileNo) && $scope.MobileNo != "" && $scope.MobileNo.toString().length == 10) {
+                            if ($scope.SelectedStores.length != 0) {
+                                if ($scope.ld_Id === undefined) {
+                                    ngProgress.start();
+                                    var datas = {
+                                        UserId: $scope.UserId,
+                                        FullName: $scope.FullName,
+                                        UserName: $scope.UserName,
+                                        EmailId: $scope.EmailId,
+                                        MobileNo: $scope.MobileNo,
+                                        AccountExpire: getDate($scope.AccountExpire),
+                                        SelectedStores: $scope.SelectedStores,
+                                       // DeletedStores: GetDeleteStores($scope.ExistingStores, $scope.SelectedStores)
+                                        DeletedStores: $scope.DeletingStores
+                                    }
+                                    Users.saveUser(datas, function (data) {
+                                        console.log(data);
+                                        if (data.success != false) {
+                                            UserRights.GetUserRights({state: $scope.CurrentPage}, function (userrights) {
+                                                $scope.Users = GetUserData(userrights.UserIds);
+                                            });
+                                            if ($scope.CurrentPage == 'add-user') {
 
-        if ($scope.FullName != "") {
-            if ($scope.UserName != "") {
-                if ($scope.EmailId != "" && validateEmail($scope.EmailId)) {
-                    if (!isNaN($scope.MobileNo) && $scope.MobileNo != "" && $scope.MobileNo.toString().length == 10) {
-                        if ($scope.SelectedUserRole != 0) {
-                            if ($scope.ld_Id === undefined) {
-                                ngProgress.start();
-                                var datas = {
-                                    FullName: $scope.FullName,
-                                    UserName: $scope.UserName,
-                                    EmailId: $scope.EmailId,
-                                    MobileNo: $scope.MobileNo,
-                                    Role: $scope.SelectedUserRole
+                                                $scope.UserId = '';
+                                                $scope.FullName = '';
+                                                $scope.UserName = '';
+                                                $scope.EmailId = '';
+                                                $scope.MobileNo = '';
+                                                $scope.SelectedUserRole = '';
+                                                $scope.AccountExpire = '';
+                                                $scope.Checked = '';
+                                                $scope.SelectedStores = [];
+                                                $scope.DeletedStores = [];
+                                                $scope.successvisible = true;
+                                               // toastr.success("Record inserted successfully. Temporary Password sent to register email.");
+                                            }
+                                            ngProgress.complete();
+                                            toastr.success(data.message);
+                                        }else{
+                                            ngProgress.complete();
+                                            toastr.error(data.message);
+
+                                        }
+                                    })
                                 }
-                                Users.saveUser(datas, function (data) {
-                                    if (data.Result == "AddEditUsers") {
-                                        Users.getUsers(function (users) {
-                                            $scope.UserList = angular.copy(users.UserData);
-                                            $scope.UserRole = angular.copy(users.UserRole);
-                                        });
-                                        $state.transitionTo('users');
-                                        $scope.FullName = "";
-                                        $scope.UserName = "";
-                                        $scope.EmailId = "";
-                                        $scope.MobileNo = "";
-                                        $scope.SelectedVendorList = [];
-                                        $scope.SelectedUserRole = 0;
-                                        $scope.successvisible = true;
-                                        toastr.success("Record inserted successfully. Temprory Password sent to register email.");
-                                    }
-                                    if (data.Result == "EmailIdError") {
-                                        $scope.errorvisible = true;
-                                        toastr.error("Email Already Available.");
-                                    }
-                                    if (data.Result == "UserNameError") {
-                                        $scope.errorvisible = true;
-                                        toastr.error("UserName  Already Available.");
-                                    }
-                                    if (data.Result == "MobileNoError") {
-                                        $scope.errorvisible = true;
-                                        toastr.error("MobileNo Already Available.");
-                                    }
-                                    ngProgress.complete();
-                                })
-                            } else {
-                                ngProgress.start();
-                                var datas = {
-                                    ld_Id: $scope.ld_Id,
-                                    FullName: $scope.FullName,
-                                    UserName: $scope.UserName,
-                                    EmailId: $scope.EmailId,
-                                    MobileNo: $scope.MobileNo,
-                                    Role: $scope.SelectedUserRole
-                                }
-                                Users.updateUser(datas, function (data) {
-                                    if (data.Result == "UsersUpdated") {
-                                        $scope.successvisible = true;
-                                        Users.getUsers(function (users) {
-                                            $scope.UserList = angular.copy(users.UserData);
-                                            $scope.UserRole = angular.copy(users.UserRole);
-                                        });
-                                        $state.transitionTo('users');
-                                        //$window.location.href = "#add-edit";
-                                        toastr.success("Record Updated successfully.");
-                                    }
-                                    if (data.Result == "EmailIdError") {
-                                        $scope.errorvisible = true;
-                                        toastr.error("Email Already Available.");
-                                    }
-                                    if (data.Result == "UserNameError") {
-                                        $scope.errorvisible = true;
-                                        toastr.error("UserName  Already Available.");
-                                    }
-                                    if (data.Result == "MobileNoError") {
-                                        $scope.errorvisible = true;
-                                        toastr.error("MobileNo Already Available.");
-                                    }
-                                    ngProgress.complete();
-                                });
+                            }
+                            else {
+                                $scope.StoreValidationVisible = true;
+                                console.log('invalid store');
                             }
                         }
                         else {
-                            $scope.RoleValidationVisible = true;
+                            $scope.MobileValidation = true;
+                            console.log('invalid mobile');
                         }
                     }
                     else {
-                        $scope.MobileValidation = true;
+                        $scope.EmailValidation = true;
+                        console.log('invalid email');
                     }
                 }
                 else {
-                    $scope.EmailValidation = true;
+                    $scope.UserNameValidation = true;
+                    console.log('invalid username');
                 }
             }
             else {
-                $scope.UserNameValidation = true;
+                $scope.NameValidation = true;
+                console.log('invalid fullname');
             }
         }
-        else {
-            $scope.NameValidation = true;
-        }
-
+    }
+    /**
+     * @desc Get Vendor Title
+     * @param expirydate
+     * @param active
+     * @returns {string}
+     * @constructor
+     */
+    function GetTitle(expirydate, active) {
+         return active != 1 ? "UnBlock" : (Datewithouttime(expirydate) < Datewithouttime(new Date()) ? "Expired" : "Block");
     }
 
-    $scope.OldPassword = "";
-    $scope.NewPassword = "";
-    $scope.ConfirmPassword = "";
-    $scope.ConfirmPasswordValidation = false;
-    $scope.OldPasswordValidation = false;
+    /**
+     * @desc Get Vendor Status
+     * @param expirydate
+     * @param active
+     * @returns {string}
+     * @constructor
+     */
+    function GetStatus(expirydate, active) {
+        return active != 1 ? "User Blocked" : (Datewithouttime(expirydate) < Datewithouttime(new Date()) ? "User Expired" : "Active");
+    }
 
-    $scope.SaveChangedPassword = function () {
-        $scope.successvisible = false;
-        $scope.errorvisible = false;
-        if ($scope.NewPassword == $scope.ConfirmPassword) {
-            ngProgress.start();
-            var datas = {
-                "oldpassword": $scope.OldPassword,
-                "newpassword": $scope.NewPassword
-            };
-            Users.changePassword(datas, function (data) {
-                console.log(data);
-                ngProgress.complete();
-                if (data.success) {
-                    $scope.OldPassword = "";
-                    $scope.NewPassword = "";
-                    $scope.ConfirmPassword = "";
-                    toastr.success(data.message);
-                    $scope.successvisible = true;
-                }
-                else {
-                    $scope.error = data.message;
-                    $scope.errorvisible = true;
+    /**
+     * @desc Change Button Color
+     * @param expirydate
+     * @param active
+     * @returns {string}
+     * @constructor
+     */
+    function ButtonColor(expirydate, active) {
+        return active != 1 ? "red" : (Datewithouttime(expirydate) < Datewithouttime(new Date()) ? "darkorange" : "green");
+    }
+
+    /**
+     * @desc Get User Details
+     * @param Users
+     * @returns {*}
+     * @constructor
+     */
+    function GetUserData(Users) {
+        _.each(Users, function (user) {
+            user.account_validity = setDate(user.account_validity);
+            user.ld_created_on = setDate(user.ld_created_on);
+            user.title = GetTitle(user.account_validity, user.ld_active);
+            user.status = GetStatus(user.account_validity, user.ld_active);
+            user.buttoncolor = ButtonColor(user.account_validity, user.ld_active);
+        });
+        return Users;
+    }
+    /**
+     * @desc Block and unblock vendors
+     * @param Id
+     * @param Status
+     * @param classtext
+     * @constructor
+     */
+    $scope.BlockUnBlockUser = function (Id, Status, classtext) {
+        if (Status !== "Expired" && classtext !== "darkorange") {
+            bootbox.confirm("Are you sure want to " + Status + " this user?", function (result) {
+                if (result) {
+                    ngProgress.start();
+                    var user_data = {
+                        ld_Id: Id,
+                        active: Status == "Block" ? 0 : 1
+                    }
+                    UserRights.BlockUnBlockUser(user_data, function (data) {
+                        if (data.success != false) {
+                            user = _.find($scope.UserIdList, function (vdr, key) { return Id == vdr.ld_id; });
+                            if (user) {
+                                user.ld_active = user_data.active;
+                                user.account_validity = setDate(user.account_validity);
+                                user.ld_created_on = setDate(user.ld_created_on);
+                                user.title = GetTitle(user.account_validity, user.ld_active);
+                                user.status = GetStatus(user.account_validity, user.ld_active);
+                                user.buttoncolor = ButtonColor(user.account_validity, user.ld_active);
+                            }
+                            toastr.success(data.message)
+                        }
+                        else {
+                            toastr.error(data.message);
+                        }
+                        ngProgress.complete();
+                    }, function (err) {
+                        toastr.error(err);
+                        ngProgress.complete();
+                    });
                 }
             });
         }
-        else {
-            $scope.error = "Confirm Password does not match.";
-            $scope.errorvisible = true;
-        }
-    };
 
-    $scope.Resetclick = function () {
-        $scope.successvisible = false;
-        $scope.errorvisible = false;
-    };
-
-    $scope.Passwordvisible = function (val) {
-        if (val == 1) {
-            $scope.passwordtype = $scope.passwordtype == "password" ? "text" : "password";
-        }
-        else if (val == 2) {
-            $scope.newpasswordtype = $scope.passwordtype == "password" ? "text" : "password";
-        }
-        else {
-            $scope.confirmpasswordtype = $scope.passwordtype == "password" ? "text" : "password";
-        }
     }
-});
 
-myApp.filter('startFrom', function () {
-    return function (input, start) {
-        if (!input || !input.length) { return; }
-        start = +start; //parse to int
-        return input.slice(start);
-    }
-});
-
-function validateEmail(email) {
-    var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
-    return re.test(email);
-
-}
+})

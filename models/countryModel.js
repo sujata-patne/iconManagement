@@ -63,6 +63,7 @@ exports.createCatalogDetailForCountry = function( dbConnection, icon_country, ca
 exports.createCountryMasterGroup = function( dbConnection, country_master_group, callback ) {
     dbConnection.query('INSERT INTO catalogue_master SET ?', country_master_group,
         function (err, result) {
+
             callback( err, result );
         }
     );

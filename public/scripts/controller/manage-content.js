@@ -100,7 +100,7 @@ myApp.controller('manageContentCtrl', function ($scope, $window, $http, ngProgre
                 content_delivery_type: $scope.content_delivery_type,
                 AddDeliveryType: GetAddDeliveryType($scope.OldContentRights, $scope.SelectedDeliveryType),
                 DeleteDeliveryType: GetDeleteDeliveryType($scope.OldContentRights, $scope.SelectedDeliveryType)
-            };
+            };           
             ContentTypes.AddEditContentType(contenttype, function (data) {
                 if (data.success) {
                     if ($scope.CurrentPage == "edit-content") {

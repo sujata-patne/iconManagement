@@ -16,10 +16,7 @@
         <link type="text/css" rel="stylesheet" href="assets/css/target-admin.css" />
         <link type="text/css" rel="stylesheet" href="assets/css/custom.css" />
           <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-                    <!--[if lt IE 9]>
-                                                                                                                                                              <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-                                                                                                                                                              <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
-                                                                                                                                                              <![endif]-->
+                    <!--[if lt IE 9]>                                                                                                                         <![endif]-->
     </head>
     <body data-ng-app="myApp">
         <div class="navbar home-navebar">
@@ -83,22 +80,38 @@
 
         <script src="assets/scripts/amplify.js"></script>
         <script src="bower_components/filesaver/FileSaver.js"></script>
+        <script src="bower_components/bootbox.js/bootbox.js"></script>
         <!-- Plugin JS -->
         <script src="scripts/app.js"></script>
+        <script src="scripts/helpers/support.js"></script>
+
         <script src="scripts/controller/dashboard.js"></script>
+        <script src="scripts/controller/changePassword.js"></script>
         <script src="scripts/controller/users.js"></script>
         <script src="scripts/controller/store.js"></script>
         <script src="scripts/controller/manage-content.js"></script>
         <script src="scripts/controller/manage-country-list.js"></script>
         <script src="scripts/controller/assign-right.js"></script>
+        <script src="scripts/controller/user-right.js"></script>
         <script src="scripts/services/users.service.js"></script>
         <script src="scripts/services/store.service.js"></script>
         <script src="scripts/services/assign-right.service.js"></script>
+        <script src="scripts/services/user-right.service.js"></script>
         <script src="scripts/services/country.service.js"></script>
         <script src="scripts/services/manage-content.service.js"></script>
         <script src="assets\scripts\bootstrap.min.js"></script>
     </body>
-
+    <style>
+        .red {
+            color: red;
+        }
+        .darkorange {
+            color: darkorange;
+        }
+        .green {
+            color: green;
+        }
+    </style>
 
 
 

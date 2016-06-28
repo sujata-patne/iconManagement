@@ -41,11 +41,18 @@ exports.getDistributionChannelList = function( dbconnection, callback ) {
 	);
 }
 
-exports.getStoreList = function( dbconnection, state, storeId, callback ) {
-	var storequery = state == "edit-store" ? "where st_id = " + storeId : "";
-	dbconnection.query('select * from (SELECT * FROM icn_store ' + storequery + ')st ' +
-						'inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) ' +
-						'inner join(select * from icn_login_detail)ld on(su.su_ld_id  = ld.ld_id) ',
+exports.getStoreList = function( dbconnection, data, callback ) {
+	console.log(data);
+	var orderBy = '';
+	if(data.orderBy){
+		var orderBy = 'ORDER BY '+data.orderBy;
+	} 
+ 	//var storequery = data.state == "edit-store" ? "where st_id = " + data.Id : "";
+	var query = 'select * from (SELECT * FROM icn_store )st ' + //' + storequery + '
+		'inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) ' +
+		'inner join(select * from icn_login_detail)ld on(su.su_ld_id  = ld.ld_id) ' + orderBy;
+	console.log(query);
+	dbconnection.query(query,
 		function ( err,storeList ) {
 			callback( err, storeList );
 		}
@@ -141,8 +148,12 @@ exports.getLastInsertedStoreIdFromIcnStore = function( dbConnection, callback ) 
 }
 
 exports.createIcnStore = function( dbConnection, storeData, callback ) {
+	var util = require('util');
+	console.log(util.inspect(storeData, false, null));
+
 	dbConnection.query('INSERT INTO icn_store SET ?', storeData,
 		function ( err, result) {
+
 			callback( err, result );
 		}
 	);

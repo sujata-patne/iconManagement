@@ -1,6 +1,7 @@
 myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngProgress, Stores, _, $window) {
 
     $('.removeActiveClass').removeClass('active');
+    $('.removeSubactiveClass').removeClass('active');
     $('#store').addClass('active');
     $scope.success = "";
     $scope.successvisible = false;
@@ -17,10 +18,58 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
     $scope.Stores = [];
     $scope.currentPageNo = 0;
     $scope.pageLimit = 10;
+    $scope.orderByField = 'st_id'; //Added orderByField and reverseSort paramenter in input object for sorting and pagination banners list.
+    $scope.reverseSort = true;
+    $scope.sortIcon = "fa fa-caret-down";
+    $scope.backToAdd = function () {
+        $state.go('add-store')
+    }
+    //Added orderBy function for sorting and pagination published banners list
+    $scope.OrderBy=function (orderByField,reverseSort) {
+        var sortOrder = reverseSort==true?"asc":"desc";
+        $scope.sortIcon = reverseSort==false?"fa fa-caret-up":"fa fa-caret-down";
+        $scope.listCriteria = {
+            Id: $stateParams.id,
+            state: $scope.CurrentPage,
+            perPageItems: 10,
+            currentPage: $scope.CurrentPage,
+            totalItemsFound: 0,
+            orderBy:orderByField +" "+sortOrder
+        };
+        Stores.getStores($scope.listCriteria, function (store) {
+            if (store.Channels.length > 0) {
+                $scope.Channels = store.Channels;
+                $scope.cmd_entity_type = store.Channels[0].cm_id;
+            }
+            $scope.SelectStoreChannels = [];
+            $scope.Stores = store.StoreList;
+
+            if ($scope.CurrentPage == "edit-store") {
+                $scope.OldStoreChannels = store.ChannelRights;
+                _.each($scope.OldStoreChannels, function (channel) {
+                    $scope.SelectStoreChannels.push(channel.cmd_entity_detail);
+                });
+                $scope.Stores.forEach(function (store) {
+                    if (value.st_id == $stateParams.id) {
+                        $scope.StoreName = store.st_name;
+                        $scope.StoreURL = store.st_url;
+                        $scope.StoreId = store.st_id;
+                        $scope.ld_id = store.ld_id;
+                        $scope.Email = store.ld_email_id;
+                        $scope.ContactPerson = store.ld_display_name;
+                        $scope.MobileNo = store.ld_mobile_no;
+                        $scope.StoreFrontType = store.st_front_type;
+                    }
+                });
+            }
+        }, function (error) {
+            $scope.error = error;
+            $scope.errorvisible = true;
+        });
+    };
 
 
     Stores.getStores({ Id: $stateParams.id, state: $scope.CurrentPage }, function (store) {
-        console.log(store)
         if (store.Channels.length > 0) {
             $scope.Channels = store.Channels;
             $scope.cmd_entity_type = store.Channels[0].cm_id;
@@ -82,6 +131,7 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
     $scope.submitForm = function (isValid) {
         $scope.successvisible = false;
         $scope.errorvisible = false;
+
         if (isValid) {
             if (parseInt($scope.MobileNo).toString().length == 10) {
                 ngProgress.start();
@@ -101,7 +151,7 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
                     DeleteStoreChannels: GetDeleteStoreChannels($scope.OldStoreChannels, $scope.SelectStoreChannels)
                 };
                 Stores.AddEditStore(store, function (data) {
-                    if (data.success) {
+                        if (data.success != false) {
                         if ($scope.CurrentPage == "edit-store") {
                             $window.location.href = "#add-store";
                         }
@@ -119,6 +169,7 @@ myApp.controller('storeCtrl', function ($scope, $http, $stateParams, $state, ngP
                         $scope.successvisible = true;
                     }
                     else {
+                        console.log('test error message')
                         toastr.error(data.message);
                         $scope.errorvisible = true;
                     }
