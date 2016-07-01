@@ -138,6 +138,15 @@ exports.insertUserRightMapping= function(dbConnection, userRightData, callback){
     );
 }
 
+exports.getAssignedVendors = function( dbConnection, callback ) {
+    dbConnection.query('select * from (SELECT * FROM icn_store)st ' +
+        'inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_vendor)',
+        function (err, assignedVendors ) {
+            callback(err, assignedVendors );
+        }
+    );
+}
+
 exports.getUserIds=function( dbConnection, data, callback ) {
     var orderBy = '';
     if(data.orderBy){
@@ -146,7 +155,7 @@ exports.getUserIds=function( dbConnection, data, callback ) {
     var query =  'select *, group_concat(distinct(s.st_id)) as stores from icn_login_detail as u '+
     'left join icn_store_user as su on u.ld_id = su.su_ld_id '+
     'left join icn_store as s on s.st_id = su.su_st_id ' +
-    'where isnull(su.su_crud_isactive) '+
+    'where isnull(u.ld_crud_isactive) and isnull(su.su_crud_isactive) '+ //and account_validity >= CURDATE()
     'group by u.ld_id ' + orderBy ;
      dbConnection.query(query, function (err, userIds) {
         callback(err, userIds );

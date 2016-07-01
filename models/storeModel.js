@@ -42,17 +42,16 @@ exports.getDistributionChannelList = function( dbconnection, callback ) {
 }
 
 exports.getStoreList = function( dbconnection, data, callback ) {
-	console.log(data);
-	var orderBy = '';
+ 	var orderBy = '';
 	if(data.orderBy){
 		var orderBy = 'ORDER BY '+data.orderBy;
 	} 
  	//var storequery = data.state == "edit-store" ? "where st_id = " + data.Id : "";
-	var query = 'select * from (SELECT * FROM icn_store )st ' + //' + storequery + '
-		'inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) ' +
-		'inner join(select * from icn_login_detail)ld on(su.su_ld_id  = ld.ld_id) ' + orderBy;
-	console.log(query);
-	dbconnection.query(query,
+	var query = 'select * FROM icn_store as st ' + //' + storequery + '
+		'inner join icn_store_user as su on(su.su_st_id  = st.st_id) ' +
+		'inner join icn_login_detail as ld on(su.su_ld_id  = ld.ld_id) ' +
+		'group by st.st_id ' + orderBy;
+ 	dbconnection.query(query,
 		function ( err,storeList ) {
 			callback( err, storeList );
 		}

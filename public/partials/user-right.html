@@ -11,8 +11,8 @@
                     <div class="col-lg-6 col-lg-offset-3 text-center" >
                         <label for="selectUserId" class="col-sm-3 control-label">Select User Id</label>
                         <span class="ui-select col-sm-9">
-                            <select name="selectUserId"  class="form-control" ng-model="SelectedUserId" data-ng-options="item.ld_id as item.ld_user_name for item in Users " required >
-                                <option value=""  >-- Select User Id --</option><!--ng-selected ="{{edit ==''}}"-->
+                            <select name="selectUserId"  class="form-control" ng-model="SelectedUserId" data-ng-options="item.ld_id as item.ld_user_id for item in Users | filter: {ld_role:'!Super Admin'}" required ng-change="existingMappingList()" >
+                                <option value="">-- Select User Id --</option><!--ng-selected ="{{edit ==''}}"-->
                             </select>
                             <span style="color: red" data-ng-show="userRightForm.$submitted || userRightForm.selectUserId.$dirty">
                                 <span data-ng-show="userRightForm.selectUserId.$error.required">Please Select User Id.</span>
@@ -22,182 +22,217 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <label>Content Ingestions</label>
-                        <div class="form-group" ng-style="{'border-style':'ridge'}">
-                            <div class="col-sm-9">
-                                <table>
-                                <tr ng-repeat=" item in RoleModuleMappings  | filter:'Content Ingetions'  ">
-                                    <td>
-                                       <input id="{{item.role_master_id}}" type="checkbox" data-ng-model="SelectedRoleModule['CI'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0"  >
-                                        <!-- ng-change="getSelectedRole(SelectedRoleModule['CI'][item.role_master_id])"-->
-                                        <label>{{item.role_name}}</label>
-                                  </td>
-                                </tr>
-                             </table>
-                            </div>
-                            <div class="col-sm-9">
-                                    <label for="selectvendor" class="col-sm-3 control-label">Vendor</label>
-                                <span class="ui-select">
-                                    <select name="selectvendor" multiple  class="form-control" data-ng-model="SelectedVendor"   data-ng-options="item.vd_id as item.vd_name for item in VendorList" >
-                                        <option value=""  >All</option><!--ng-selected ="{{edit ==''}}"-->
-                                    </select>
-                                </span>
-                            </div>
-                        </div>
-                        <label>Plan Management</label>
-                        <div class="form-group" ng-style="{'border-style':'ridge'}" >
-                            <div class="col-sm-9">
-                                <table>
-                                    <tr ng-repeat="item in RoleModuleMappings | filter:'Plan Management' track by $index">
-                                        <td>
-                                            <input  type="checkbox"  data-ng-model="SelectedRoleModule['Plan'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0" >
-                                            <label>{{item.role_name}}</label>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-sm-9">
-                                <label for="selectstorePlan" class="col-sm-3 control-label">Store</label>
-                                <span class="ui-select">
-                                    <select name="selectstorePlan" multiple  class="form-control" data-ng-model="SelectedStorePlan" data-ng-options="item.st_id as item.st_name for item in StoresList">
-                                       <option value=""  >All</option>
-                                    </select>
-                                </span>
+                        <fieldset class="scheduler-border"><legend class="scheduler-border">Content Ingestion</legend>
+                        <div class="container-fluid" >
+                            <div class="form-group" >
+                                <div class="col-sm-4"  ng-repeat=" item in RoleModuleMappings  | filter:'Content Ingetions'  ">
+                                    <input id="{{item.role_master_id}}" type="checkbox" data-ng-model="SelectedRoleModule['CI'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0"  >
+                                    <label>{{item.role_name}}</label>
+                                </div>
+                                <div class="col-sm-12">
+                                    <label for="selectvendor" class="control-label">Vendor</label>
+                                    <span class="ui-select">
+                                        <select name="selectvendor" multiple  class="form-control" data-ng-model="SelectedVendor" ng-change="selectAll('SelectedVendor')"  data-ng-options="item.vd_id as item.vd_name for item in VendorList" >
+                                        </select>
+                                    </span>
+                                    <span class="help-block">
+                                        <label>
+                                            <input type="checkbox" ng-model="vendorSelectAll" ng-change ="selectAllVendor()">
+                                            Select all Vendors
+                                        </label>
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        <label>Site Publishing Management</label>
-                        <div class="form-group" ng-style="{'border-style':'ridge'}">
-                            <div class="col-sm-9">
-                                <table>
-                                    <tr ng-repeat=" item in RoleModuleMappings | filter:'Site Publishing Management'">
-                                        <td>
-                                            <input type="checkbox" data-ng-model="SelectedRoleModule['Site'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0" >
-                                            <label>{{item.role_name}}</label>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-sm-9">
-                                <label for="selectstoreSite" class="col-sm-3 control-label">Store</label>
-                                <span class="ui-select">
-                                    <select name="selectstoreSite" multiple  class="form-control" data-ng-model="SelectedStoreSite" data-ng-options="item.st_id as item.st_name for item in StoresList">
-                                       <option value=""  >All</option>
-                                    </select>
-                                </span>
-                            </div>
-                        </div>
-                        <label>Banner Management</label>
-                        <div class="form-group" ng-style="{'border-style':'ridge'}" >
-                            <div class="col-sm-9">
-                                <table>
-                                    <tr ng-repeat=" item in RoleModuleMappings | filter:'Banner Management'">
-                                        <td>
-                                            <input type="checkbox" data-ng-model="SelectedRoleModule['Banner'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0">
-                                            <label>{{item.role_name}}</label>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-sm-9">
-                                <label for="selectstoreBanner" class="col-sm-3 control-label">Store</label>
-                                <span class="ui-select">
-                                    <select name="selectstoreBanner" multiple  class="form-control" data-ng-model="SelectedStoreBanner" data-ng-options="item.st_id as item.st_name for item in StoresList" >
-                                     <option value=""  >All</option>
-                                    </select>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                    </fieldset>
+                </div>
                     <div class="col-md-6">
-                        <label>Pack Management</label>
-                        <div class="form-group" ng-style="{'border-style':'ridge'}" >
-                            <div class="col-sm-9">
-                                <table>
-                                    <tr ng-repeat=" item in RoleModuleMappings | filter:'Pack Management'">
-                                        <td>
-                                            <input type="checkbox" data-ng-model="SelectedRoleModule['Pack'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0">
-                                            <label>{{item.role_name}}</label>
-                                        </td>
-                                    </tr>
-                                </table>
+                        <fieldset class="scheduler-border"><legend class="scheduler-border">Plan Management</legend>
+                            <div class="container-fluid" >
+                                <div class="form-group" >
+                                    <div class="col-sm-4" ng-repeat=" item in RoleModuleMappings | filter:'Plan Management' track by $index">
+                                        <input  type="checkbox"  data-ng-model="SelectedRoleModule['Plan'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0" >
+                                        <label>{{item.role_name}}</label>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <label for="selectstorePlan" class="col-sm-3 control-label">Store</label>
+                                        <span class="ui-select">
+                                            <select name="selectstorePlan" multiple  class="form-control" data-ng-model="SelectedStorePlan" data-ng-options="item.st_id as item.st_name for item in StoresList">
+                                                </select>
+                                            </span>
+                                        <span class="help-block">
+                                            <label>
+                                            <input type="checkbox" ng-model="storePlanSelectAll" ng-change ="selectAllStore('SelectedStorePlan',storePlanSelectAll)">
+                                                Select all Store
+                                            </label>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-sm-9" >
-                                <label for="selectstorePack" class="col-sm-3 control-label">Store</label>
-                                <span class="ui-select">
-                                    <select name="selectstorePack" multiple  class="form-control" data-ng-model="SelectedStorePack" data-ng-options="item.st_id as item.st_name for item in StoresList">
-                                       <option value=""  >All</option>
-                                    </select>
-                                </span>
-                                <pre ng-style="{'backgroundColor':'white','border-style':'none'}"></pre>
-                            </div>
-                        </div>
-                        <label>Package Management</label>
-                        <div class="form-group" ng-style="{'border-style':'ridge'}">
-                            <div class="col-sm-9">
-                                <table>
-                                    <tr ng-repeat=" item in RoleModuleMappings | filter:'Package Management'">
-                                        <td>
-                                            <input type="checkbox"data-ng-model="SelectedRoleModule['Pkg'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0" >
-                                            <label>{{item.role_name}}</label>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-sm-9">
-                                <label for="selectstorePackage" class="col-sm-3 control-label">Store</label>
-                                <span class="ui-select">
-                                    <select name="selectstorePackage" multiple  class="form-control" data-ng-model="SelectedStorePackage" data-ng-options="item.st_id as item.st_name for item in StoresList">
-                                        <option value=""  >All</option>
-                                    </select>
-                                </span>
-                            </div>
-                        </div>
-                        <label>MIS Management</label>
-                        <div class="form-group" ng-style="{'border-style':'ridge'}">
-                            <div class="col-sm-9">
-                                <table>
-                                    <tr ng-repeat=" item in RoleModuleMappings | filter:'MIS Management'">
-                                        <td>
-                                            <input type="checkbox" data-ng-model="SelectedRoleModule['MIS'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0">
-                                            <label>{{item.role_name}}</label>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-sm-9" >
-                                <label for="selectstoreMIS" class="col-sm-3 control-label">Store</label>
-                                <span class="ui-select">
-                                    <select name="selectstoreMIS" multiple  class="form-control" data-ng-model="SelectedStoreMIS" data-ng-options="item.st_id as item.st_name for item in StoresList">
-                                        <option value=""  >All</option>
-                                    </select>
-                                </span>
-                            </div>
-                        </div>
-                        <label>Promo Link Management</label>
-                        <div class="form-group" ng-style="{'border-style':'ridge'}">
-                            <div class="col-sm-9">
-                                <table>
-                                    <tr ng-repeat=" item in RoleModuleMappings | filter:'Promo Link Management'">
-                                        <td>
-                                            <input type="checkbox" data-ng-model="SelectedRoleModule['Promo'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0">
-                                            <label>{{item.role_name}}</label>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-sm-9">
-                                <label for="selectstorePromoLink" class="col-sm-3 control-label">Store</label>
-                                <span class="ui-select">
-                                    <select name="selectstorePromoLink" multiple  class="form-control" data-ng-model="SelectedStorePromoLink" data-ng-options="item.st_id as item.st_name for item in StoresList">
-                                        <option value=""  >All</option>
-                                    </select>
-                                </span>
-                            </div>
-                        </div>
+                        </fieldset>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-xs-12">
+                    <div class="col-md-6">
+                        <fieldset class="scheduler-border"><legend class="scheduler-border">Pack Management</legend>
+                            <div class="container-fluid" >
+                                <div class="form-group" >
+                                    <div class="col-sm-4"  ng-repeat=" item in RoleModuleMappings | filter:'Pack Management'">
+                                        <input type="checkbox" data-ng-model="SelectedRoleModule['Pack'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0">
+                                        <label>{{item.role_name}}</label>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <label for="selectstorePack" class="col-sm-3 control-label">Store</label>
+                                    <span class="ui-select">
+                                        <select name="selectstorePack" multiple  class="form-control" data-ng-model="SelectedStorePack" data-ng-options="item.st_id as item.st_name for item in StoresList">
+                                        </select>
+                                    </span>
+                                    <span class="help-block">
+                                        <label>
+                                        <input type="checkbox" ng-model="storePackSelectAll" ng-change ="selectAllStore('SelectedStorePack',storePackSelectAll)">
+                                            Select all Stores
+                                        </label>
+                                    </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-6">
+                        <fieldset class="scheduler-border"><legend class="scheduler-border">Package Management</legend>
+                            <div class="container-fluid" >
+                                <div class="form-group" >
+                                    <div class="col-sm-4"  ng-repeat=" item in RoleModuleMappings | filter:'Package Management'">
+                                        <input type="checkbox"data-ng-model="SelectedRoleModule['Pkg'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0" >
+                                        <label>{{item.role_name}}</label>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <label for="selectstorePackage" class="col-sm-3 control-label">Store</label>
+                                <span class="ui-select">
+                                    <select name="selectstorePackage" multiple  class="form-control" data-ng-model="SelectedStorePackage" data-ng-options="item.st_id as item.st_name for item in StoresList">
+                                    </select>
+                                </span>
+                                <span class="help-block">
+                                    <label>
+                                        <input type="checkbox" ng-model="storePackageSelectAll" ng-change ="selectAllStore('SelectedStorePackage',storePackageSelectAll)">
+                                        Select all Store
+                                    </label>
+                                </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <fieldset class="scheduler-border"><legend class="scheduler-border">Site Publishing Management</legend>
+                            <div class="container-fluid" >
+                                <div class="form-group" >
+                                    <div class="col-sm-4" ng-repeat="item in RoleModuleMappings | filter:'Site Publishing Management'">
+                                        <input type="checkbox" data-ng-model="SelectedRoleModule['Site'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0" >
+                                        <label>{{item.role_name}}</label>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <label for="selectstoreSite" class="col-sm-3 control-label">Store</label>
+                                        <span class="ui-select">
+                                            <select name="selectstoreSite" multiple  class="form-control" data-ng-model="SelectedStoreSite" data-ng-options="item.st_id as item.st_name for item in StoresList">
+                                            </select>
+                                        </span>
+                                        <span class="help-block">
+                                            <label>
+                                            <input type="checkbox" ng-model="storeSiteSelectAll" ng-change ="selectAllStore('SelectedStoreSite',storeSiteSelectAll)">
+                                                Select all Stores
+                                            </label>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-6">
+                        <fieldset class="scheduler-border"><legend class="scheduler-border">Banner Management</legend>
+                            <div class="container-fluid" >
+                                <div class="form-group" >
+                                    <div class="col-sm-4" ng-repeat="item in RoleModuleMappings | filter:'Banner Management'">
+                                        <input type="checkbox" data-ng-model="SelectedRoleModule['Banner'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0">
+                                        <label>{{item.role_name}}</label>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <label for="selectstoreBanner" class="col-sm-3 control-label">Store</label>
+                                <span class="ui-select">
+                                    <select name="selectstoreBanner" multiple  class="form-control" data-ng-model="SelectedStoreBanner" data-ng-options="item.st_id as item.st_name for item in StoresList" >
+                                    </select>
+                                </span>
+                                <span class="help-block">
+                                    <label>
+                                        <input type="checkbox" ng-model="storeBannerSelectAll" ng-change ="selectAllStore('SelectedStoreBanner',storeBannerSelectAll)">
+                                        Select all Store
+                                    </label>
+                                </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <fieldset class="scheduler-border"><legend class="scheduler-border">MIS Management</legend>
+                            <div class="container-fluid" >
+                                <div class="form-group" >
+                                    <div class="col-sm-4" ng-repeat="item in RoleModuleMappings | filter:'MIS Management'">
+                                        <input type="checkbox" data-ng-model="SelectedRoleModule['MIS'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0">
+                                        <label>{{item.role_name}}</label>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <label for="selectstoreMIS" class="col-sm-3 control-label">Store</label>
+                                        <span class="ui-select">
+                                            <select name="selectstoreMIS" multiple  class="form-control" data-ng-model="SelectedStoreMIS" data-ng-options="item.st_id as item.st_name for item in StoresList">
+                                            </select>
+                                        </span>
+                                        <span class="help-block">
+                                            <label>
+                                        <input type="checkbox" ng-model="storeMISSelectAll" ng-change ="selectAllStore('SelectedStoreMIS',storeMISSelectAll)">
+                                                Select all Stores
+                                            </label>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="col-md-6">
+                        <fieldset class="scheduler-border"><legend class="scheduler-border">Promo Link Management</legend>
+                            <div class="container-fluid" >
+                                <div class="form-group" >
+                                    <div class="col-sm-4" ng-repeat="item in RoleModuleMappings | filter:'Promo Link Management'">
+                                        <input type="checkbox" data-ng-model="SelectedRoleModule['Promo'][item.role_master_id]" ng-true-value="{{item.module_master_id}}" ng-false-value="0">
+                                        <label>{{item.role_name}}</label>
+                                    </div>
+                                    <div class="col-sm-12">
+                                        <label for="selectstorePromoLink" class="col-sm-3 control-label">Store</label>
+                                <span class="ui-select">
+                                    <select name="selectstorePromoLink" multiple  class="form-control" data-ng-model="SelectedStorePromoLink" data-ng-options="item.st_id as item.st_name for item in StoresList">
+                                    </select>
+                                </span>
+                                <span class="help-block">
+                                    <label>
+                                        <input type="checkbox" ng-model="storePromoSelectAll" ng-change ="selectAllStore('SelectedStorePromoLink',storePromoSelectAll)">
+                                        Select all Store
+                                    </label>
+                                </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">&nbsp;</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
                         <div class="col-sm-offset-5 col-sm-7">
                             <button type="submit" class="btn btn-primary btn-w-md" title="Save">Submit</button>
                             <button type="reset" class="btn btn-default btn-w-md" title="Reset" data-ng-click="resetForm()">Reset</button>

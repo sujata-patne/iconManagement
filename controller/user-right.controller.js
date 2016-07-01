@@ -10,16 +10,16 @@ var fs = require("fs");
 var wlogger= require('../config/logger');
 var reload = require('require-reload')(require);
 var _ = require("underscore");
-function Pad(padString, value, length) {
-    var str = value.toString();
-    while (str.length < length)
-        str = padString + str;
+var common = require("../helpers/common");
 
-    return str;
-}
-
+/**
+ * @desc create a log file if not exist.
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.allAction = function (req, res, next) {
-    var currDate = Pad("0",parseInt(new Date().getDate()), 2)+'_'+Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
+    var currDate = common.Pad("0",parseInt(new Date().getDate()), 2)+'_'+common.Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
     if (wlogger.logDate == currDate) {
         var logDir = config.log_path;
         var filePath = logDir + 'logs_'+currDate+'.log';
@@ -34,7 +34,12 @@ exports.allAction = function (req, res, next) {
         next();
     }
 }
-
+/**
+ * @desc Get User Rights for All Users
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.getuserrights = function (req, res, next) {
     try {
         if (req.session) {
@@ -90,6 +95,21 @@ exports.getuserrights = function (req, res, next) {
                                     wlogger.error(errorInfo);
                                 }
                                 callback(err, Vendors);
+                            });
+                        },
+                        AssignVendors: function (callback) {
+                            userRightsManager.getAssignedVendors( connection_ikon_cms, function( err, AssignVendors  ) {
+                                console.log(AssignVendors)
+                                if (err) {
+                                    var errorInfo = {
+                                        userName: req.session.icon_UserName,
+                                        action: 'getAssignedVendors',
+                                        responseCode: 500,
+                                        message: ' failed to get AssignedVendors ' + JSON.stringify(err.message)
+                                    };
+                                    wlogger.error(errorInfo);
+                                }
+                                callback( err, AssignVendors );
                             });
                         },
                         Modules: function (callback) {
@@ -190,6 +210,12 @@ exports.getuserrights = function (req, res, next) {
     }
 }
 
+/**
+ * @desc
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.existingMappingList = function (req, res, next) {
     try {
         if (req.session) {
@@ -455,6 +481,7 @@ exports.addedituser = function (req, res, next) {
             if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
                     var flag = true;
+
                     var query = connection_ikon_cms.query('SELECT * FROM icn_login_detail where LOWER(ld_user_id) = ?', [req.body.UserName.toString().toLowerCase()], function (err, result) {
                         if (err) {
                             var error = {
@@ -580,13 +607,16 @@ exports.addedituser = function (req, res, next) {
                                 res.status(500).json(err.message);
                             }
                             else {
+                                var site_path = config.site_path;
+                                var port = config.port;
+                                var url = site_path+":"+port;
                                 var Ld_id = userdata[0].id != null ? (parseInt(userdata[0].id) + 1) : 1;
                                 var datas = {
                                     ld_id: Ld_id,
                                     ld_active: 1,
                                     ld_user_id: req.body.UserName,
                                     ld_user_pwd: 'icon',
-                                    account_validity: getDate(req.body.AccountExpire),
+                                    account_validity: common.setDBDate(req.body.AccountExpire),
                                     ld_user_name: req.body.UserName,
                                     ld_display_name: req.body.FullName,
                                     ld_email_id: req.body.EmailId,
@@ -669,7 +699,7 @@ exports.addedituser = function (req, res, next) {
                                                                     Message += " </td></tr><tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:15px;font-weight: bold;line-height:24px;text-align:left\">Your Password : " + "icon";
                                                                     Message += " </td></tr>";
                                                                     Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                                                    Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://192.168.1.21:3040/accountlogin \" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Icon. If you have not made any request then you may ignore this email.";
+                                                                    Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href="+url+"/accountlogin \" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Icon. If you have not made any request then you may ignore this email.";
                                                                     Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">If you have any concerns please contact us.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Icon Team</td></tr></tbody></table>";
                                                                     var mailOptions = {
                                                                         to: req.body.EmailId,
@@ -706,7 +736,6 @@ exports.addedituser = function (req, res, next) {
                                                         }
                                                     }
                                                 });
-
                                             }
                                         }
                                         else {
@@ -724,7 +753,7 @@ exports.addedituser = function (req, res, next) {
                                             Message += " </td></tr><tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:15px;font-weight: bold;line-height:24px;text-align:left\">Your Password : " + "icon";
                                             Message += " </td></tr>";
                                             Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                            Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href=\"http://192.168.1.21:3040/accountlogin\" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Icon. If you have not made any request then you may ignore this email.";
+                                            Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href="+url+"/accountlogin \" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Icon. If you have not made any request then you may ignore this email.";
                                             Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">If you have any concerns please contact us.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Icon Team</td></tr></tbody></table>";
                                             var mailOptions = {
                                                 to: req.body.EmailId,
@@ -795,14 +824,13 @@ exports.addedituser = function (req, res, next) {
                     function EditUser() {
                          var datas = {
                             ld_user_id: req.body.UserName,
-                            account_validity: getDate(req.body.AccountExpire),
+                            account_validity: common.setDBDate(req.body.AccountExpire),
                             ld_user_name: req.body.UserName,
                             ld_display_name: req.body.FullName,
                             ld_email_id: req.body.EmailId,
                             ld_mobile_no: req.body.MobileNo,
-                            ld_modified_on: getDate(new Date()),
+                            ld_modified_on: new Date(),
                             ld_modified_by: req.session.icon_UserName,
-                            //ld_last_login: getDate(new Date())
                         };
                         var query = 'UPDATE icn_login_detail SET ? ' +
                             'where ld_id= ? ';
@@ -824,7 +852,7 @@ exports.addedituser = function (req, res, next) {
                                     var count = 0;
                                     loop(count);
                                     function loop(count) {
-                                        var query = connection_ikon_cms.query('SELECT * FROM icn_store_user where su_ld_id = ? and su_st_id =?', [req.body.UserId, req.body.SelectedStores[count]], function (err, row) {
+                                        var query = connection_ikon_cms.query('SELECT * FROM icn_store_user where isnull(su_crud_isactive) and su_ld_id = ? and su_st_id =?', [req.body.UserId, req.body.SelectedStores[count]], function (err, row) {
                                             if (err) {
                                                 var error = {
                                                     userName: req.session.icon_UserName,
@@ -1021,19 +1049,5 @@ exports.blockunblockuser = function (req, res, next) {
         }
         wlogger.error(error); // for error
         res.status(500).json(err.message);
-    }
-}
-
-function getDate(val) {
-    if (val) {
-        var d = new Date(val);
-        //var d = moment(new Date(val), "Asia/Kolkata").format("YYYY-MM-DD");
-        var dt = d.getDate();
-        var month = d.getMonth() + 1;
-        var year = d.getFullYear();
-        var selectdate = year + '-' + Pad("0", month, 2)  + '-' + Pad("0", dt, 2) ;
-        return selectdate;
-    } else {
-        return '';
     }
 }

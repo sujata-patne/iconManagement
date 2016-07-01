@@ -21,6 +21,7 @@ myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $stateParams,
     $scope.orderByField = 'ld_id'; //Added orderByField and reverseSort paramenter in input object for sorting and pagination banners list.
     $scope.reverseSort = true;
     $scope.sortIcon = "fa fa-caret-down";
+    $scope.curDate = getDate(new Date());
 
     /**
      * @desc open datepicker for start date
@@ -30,13 +31,13 @@ myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $stateParams,
         $scope.open = true;
         evt.preventDefault();
         evt.stopPropagation();
-    }    // Get Users,Modules,Roles,Vendors,Stores,Role-Module Mappings for binding to UI controls
-
+    }
+    // Get Users,Modules,Roles,Vendors,Stores,Role-Module Mappings for binding to UI controls
     UserRights.GetUserRights({ state: $scope.CurrentPage }, function (userrights) {
          $scope.StoresList = userrights.StoresList;
         $scope.VendorList = userrights.Vendors;
         $scope.UserIdList = userrights.UserIds;
-        $scope.Users = GetUserData(userrights.UserIds);
+        $scope.Users = GetUserData(userrights.UserIds).filter(Boolean);
 
         $scope.Modules=userrights.Modules;
         $scope.Roles=userrights.Roles;
@@ -54,7 +55,7 @@ myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $stateParams,
                     $scope.MobileNo = value.ld_mobile_no;
                     $scope.SelectedUserRole = value.ld_role;
                     $scope.AccountExpire = setDate(value.account_validity);
-                     if(value.stores != null){
+                    if(value.stores != null){
                         value.stores.split(',').forEach(function(store){
                             $scope.ExistingStores.push(parseFloat(store));
                         })
@@ -231,7 +232,6 @@ myApp.controller('usersCtrl', function ($scope, $http, ngProgress, $stateParams,
                                                 $scope.Users = GetUserData(userrights.UserIds);
                                             });
                                             if ($scope.CurrentPage == 'add-user') {
-
                                                 $scope.UserId = '';
                                                 $scope.FullName = '';
                                                 $scope.UserName = '';

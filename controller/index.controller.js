@@ -12,48 +12,10 @@ var config = require('../config')();
 var crypto = require('crypto');
 var algorithm = 'aes-256-ctr'; //Algorithm used for encrytion
 var password = 'd6F3Efeq'; //Encryption password
-
-function encrypt(text){
-    var cipher = crypto.createCipher(algorithm, password)
-    var crypted = cipher.update(text,'utf8','hex')
-    crypted += cipher.final('hex');
-    return crypted;
-}
-
-function decrypt(text){
-    var decipher = crypto.createDecipher(algorithm,password)
-    var dec = decipher.update(text,'hex','utf8')
-    dec += decipher.final('utf8');
-    return dec;
-}
-
-function getDate() {
-    var d = new Date();
-    var dt = d.getDate();
-    var month = d.getMonth() + 1;
-    var year = d.getFullYear();
-    var selectdate = year + '-' + Pad("0", month, 2) + '-' + Pad("0", dt, 2);
-    return selectdate;
-}
-function getTime(val) {
-    var d = new Date(val);
-    var minite = d.getMinutes();
-    var hour = d.getHours();
-    var second = d.getSeconds();
-    var selectdate = Pad("0", hour, 2) + ':' + Pad("0", minite, 2) + ':' + Pad("0", second, 2);
-    return selectdate;
-}
-
-function Pad(padString, value, length) {
-    var str = value.toString();
-    while (str.length < length)
-        str = padString + str;
-
-    return str;
-}
+var common = require("../helpers/common");
 
 exports.allAction = function (req, res, next) {
-    var currDate = Pad("0",parseInt(new Date().getDate()), 2)+'_'+Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
+    var currDate = common.Pad("0",parseInt(new Date().getDate()), 2)+'_'+common.Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
     if (wlogger.logDate == currDate) {
         var logDir = config.log_path;
         var filePath = logDir + 'logs_'+currDate+'.log';
@@ -71,7 +33,6 @@ exports.allAction = function (req, res, next) {
 
 exports.pages = function (req, res, next) {
     var role;
-
     var pagesjson = [
         { 'pagename': 'Store', 'href': 'store', 'id': 'a-la-cart', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
         { 'pagename': 'Assign Rights', 'href': 'assign-right', 'id': 'value-pack', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
@@ -81,9 +42,6 @@ exports.pages = function (req, res, next) {
         if (req.session.icon_UserName) {
             role = req.session.icon_UserRole;
             var pageData = getPages(role);
-
-
-
             var info = {
                 userName: req.session.icon_UserName,
                 action : 'pages',
@@ -91,12 +49,9 @@ exports.pages = function (req, res, next) {
                 message :' login successfully with existing session'
             };
             wlogger.info(info);
-
-            res.render('index', { title: 'Express', username: req.session.icon_FullName, Pages: pageData, userrole: req.session.icon_UserType, lastlogin: " " + getDate(req.session.icon_lastlogin) + " " + getTime(req.session.icon_lastlogin) });
-
+            res.render('index', { title: 'Express', username: req.session.icon_FullName, Pages: pageData, userrole: req.session.icon_UserType, lastlogin: " " + common.setDate(req.session.icon_lastlogin) + " " + common.setTime(req.session.icon_lastlogin) });
         }
         else {
-
             res.redirect('/accountlogin');
         }
     }
@@ -120,14 +75,10 @@ exports.pages = function (req, res, next) {
 //}
 exports.login = function (req, res, next) {
     if(req.cookies.icon_remember == 1 && req.cookies.icon_username != '' ){
-
         mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-            userManager.getIcnLoginDetails( connection_ikon_cms, decrypt(req.cookies.icon_username), decrypt(req.cookies.icon_password), function( err, row ){
-
+            userManager.getIcnLoginDetails( connection_ikon_cms, common.decrypt(req.cookies.icon_username), decrypt(req.cookies.icon_password), function( err, row ){
                 if (err) {
-
                     var errorInfo = {
-
                         userName: req.cookies.icon_username,
                         action : 'getIcnLoginDetails',
                         responseCode:500,
@@ -248,7 +199,7 @@ exports.logout = function (req, res, next) {
             if (req.session.icon_UserName) {
                 //req.session = null;
                 var userName= req.session.icon_UserName;
-               req.session.icon_UserId = null;
+                req.session.icon_UserId = null;
                 req.session.icon_UserRole = null;
                 req.session.icon_UserName = null;
                 req.session.icon_Password = null;
@@ -313,8 +264,8 @@ exports.authenticate = function (req, res, next) {
             if(req.body.rememberMe){
                 var minute = 10080 * 60 * 1000;
                 res.cookie('icon_remember', 1, { maxAge: minute });
-                res.cookie('icon_username', encrypt(req.body.username), { maxAge: minute });
-                res.cookie('icon_password', encrypt(req.body.password), { maxAge: minute });
+                res.cookie('icon_username', common.encrypt(req.body.username), { maxAge: minute });
+                res.cookie('icon_password', common.encrypt(req.body.password), { maxAge: minute });
 
                 var info = {
                     userName: req.body.username,
@@ -467,12 +418,12 @@ function getPages(role) {
     //{ 'pagename': 'Add/Edit Store', 'href': 'add-store', 'id': 'store', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
 
     var pagesjson = [
-        {'pagename': 'User Rights Management', 'href': 'user-right-management', 'id': 'user-right-management', 'class': 'fa fa-hdd-o', 'submenuflag': '2', 'sub': [
+        {'pagename': 'User Management', 'href': 'user-right-management', 'id': 'user-right-management', 'class': 'fa fa-hdd-o', 'submenuflag': '2', 'sub': [
             { 'subpagename': 'Add User', 'subhref': 'add-user', 'id': 'add-user', 'subclass': 'fa fa-align-left' },
             { 'subpagename': 'Assign User Rights', 'subhref': 'user-right', 'id': 'user-right', 'subclass': 'fa fa-align-left' }
         ]
         },
-        {'pagename': 'Store Rights Management', 'href': 'store-right', 'id': 'store-right', 'class': 'fa fa-hdd-o', 'submenuflag': '2', 'sub': [
+        {'pagename': 'Store Management', 'href': 'store-right', 'id': 'store-right', 'class': 'fa fa-hdd-o', 'submenuflag': '2', 'sub': [
                { 'subpagename': 'Add Store', 'subhref': 'add-store', 'id': 'store', 'subclass': 'fa fa-align-left' },
                { 'subpagename': 'Assign Store Rights', 'subhref': 'assign-right', 'id': 'assign-right', 'subclass': 'fa fa-align-left' }
            ]
@@ -583,8 +534,7 @@ exports.forgotPassword = function (req, res, next) {
         };
         wlogger.error(ErrorInfo);
 
-        connection_central.end();
-        res.render('account-forgot', { error: 'Error in database connection.' });
+         res.render('account-forgot', { error: 'Error in database connection.' });
     }
 }
 

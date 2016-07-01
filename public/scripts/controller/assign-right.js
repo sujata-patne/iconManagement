@@ -1,4 +1,12 @@
-myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateParams, AssignRights, $state, _, $window,$timeout) {
+/**
+ * @memberof myApp
+ * @type {controller|angular.Controller}
+ * @desc Assign Rights To Store Controller
+ * @param $scope {service} controller scope
+ * @param $state {service} controller scope
+ * @param $http {service} controller scope
+ */
+myApp.controller('assignRightCtrl', function ($scope, $http, $state, ngProgress, $stateParams, AssignRights, _, $window,$timeout) {
     $('.removeActiveClass').removeClass('active');
     $('.removeSubactiveClass').removeClass('active');
 
@@ -69,18 +77,28 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         }
     }, {},true);*/
 
+    /**
+     * @desc Get A-la-carta Events List
+     * @param storeId
+     */
     $scope.getAlaCartEvents = function(storeId) {
         AssignRights.getJetPayDetailsForAlaCart(storeId, function (jetPayDetials) {
             $scope.jetPayDetials[2] = angular.copy(jetPayDetials);
         })
     }
-
+    /**
+     * @desc Get Subscription Events List
+     * @param storeId
+     */
     $scope.getSubscriptionEvents = function(storeId) {
         AssignRights.getJetPayDetailsForSubscription(storeId, function (jetPayDetials) {
             $scope.jetPayDetials[1] = angular.copy(jetPayDetials);
         })
     }
-
+    /**
+     * @desc Get JetPay Payment Channels for Given Store List
+     * @param storeId
+     */
     $scope.getJetPayDetails = function(storeId){
         $scope.getAlaCartEvents(storeId);
         $scope.getSubscriptionEvents(storeId);
@@ -92,10 +110,10 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         }, 1000)
 
     }
-
+    /**
+     * @desc Get Payment Channels List
+     */
     $scope.getPaymentChannels = function(){
-        console.log('$scope.SelectedGeoLocation');
-        console.log($scope.SelectedGeoLocation);
         $scope.PaymentChannels = [];
         var countries = GetSelectedCountry($scope.SelectedGeoLocation);
         var channelarray = [];
@@ -120,21 +138,25 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             })
         })
     }
-
-
+    /**
+     * @desc $watch SelectedPaymentType
+     */
     $scope.$watch('SelectedPaymentType',function(){
         $scope.getPaymentChannels();
     }, {}, true);
-
+    /**
+     * @desc $watch SelectedGeoLocation
+     */
     $scope.$watch('SelectedGeoLocation',function(){
-
         $scope.getPaymentChannels();
         $scope.countryChange();
 
     }, {},true);
 
+    /**
+     * @desc Get updated details on Store Change Event
+     */
     $scope.storeChange = function () {
-
         var store = _.find($scope.Stores, function (store) { return store.st_id == $scope.SelectedStore });
         if (store) {
             var storeUsers = _.find($scope.UserDetails, function (user) { return user.su_st_id == $scope.SelectedStore });
@@ -181,7 +203,12 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
             $scope.SelectedVendor = [];
         }
     }
-
+    /**
+     * @desc Get Country list for selected group
+     * @param selectedcountry
+     * @returns {Array}
+     * @constructor
+     */
     function GetSelectedCountry(selectedcountry) {
         var country = [];
         var group = [];
@@ -215,11 +242,11 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         return country;
     }
 
+    /**
+     * @desc Get Updated Vendors List for Changed CCountry
+     */
     $scope.countryChange = function () {
-
         var countries = GetSelectedCountry($scope.SelectedGeoLocation);
-       // console.log(countries)
-
         var Vendors = _.filter($scope.VendorCountry, function (country) {
             return _.contains(countries, country.r_country_distribution_rights) });
         var Vendorarray = [];
@@ -242,7 +269,16 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         });*/
 
     }
-
+    /**
+     * @desc Get List of Deleted Assign Rights
+     * @param OldData
+     * @param SelectedData
+     * @param GroupId
+     * @param type
+     * @param DeleteArray
+     * @returns {*}
+     * @constructor
+     */
     function GetDeleteAssignRights(OldData, SelectedData, GroupId, type, DeleteArray) {
         _.each(OldData, function (old) {
             var data = _.find(SelectedData, function (selected, key) { return selected == old.cmd_entity_detail && old.cmd_group_id == GroupId });
@@ -253,6 +289,16 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         return DeleteArray;
     }
 
+    /**
+     * @desc Get List of Added Assign Rights
+     * @param OldData
+     * @param SelectedData
+     * @param GroupId
+     * @param type
+     * @param AddArray
+     * @returns {*}
+     * @constructor
+     */
     function GetAddAssignRights(OldData, SelectedData, GroupId, type, AddArray) {
         _.each(SelectedData, function (selected) {
             var data = _.find(OldData, function (old, key) { return selected == old.cmd_entity_detail && old.cmd_group_id == GroupId });
@@ -263,6 +309,9 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         return AddArray;
     }
 
+    /**
+     * @desc Reset/Clear Assign Rights Form
+     */
     $scope.resetForm = function () {
         $scope.PaymentTypes = [];
         $scope.Countrys = [];
@@ -272,7 +321,10 @@ myApp.controller('assignRightCtrl', function ($scope, $http, ngProgress, $stateP
         $scope.successvisible = false;
         $scope.errorvisible = false;
     }
-
+    /**
+     * @desc Save Assign Rights Form Details into DB
+     * @param isValid
+     */
     $scope.submitForm = function (isValid) {
         $scope.successvisible = false;
         $scope.errorvisible = false;

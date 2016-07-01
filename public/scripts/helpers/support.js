@@ -29,6 +29,7 @@ function Pad(padString, value, length) {
 
     return str;
 }
+
 /**
  *
  * @param second
