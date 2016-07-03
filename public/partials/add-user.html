@@ -15,11 +15,11 @@
                         <div class="form-group">
                             <label for="username" class="col-sm-3 control-label"><span class="asterisk">*</span>User Name</label>
                             <div class="col-sm-9"> <!-- data-ng-pattern="/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/"-->
-                                <input ng-disabled="!IsAddUser" type="text" name="username" class="form-control" required placeholder="User Name" data-ng-model="UserName" ng-maxlength="250">
+                                <input ng-disabled="!IsAddUser" type="text" name="username" class="form-control" required placeholder="User Name" data-ng-model="UserName" ng-maxlength="50">
                                 <span style="color: red" ng-show="userForm.$submitted || userForm.username.$dirty">
                                     <span ng-show="userForm.username.$error.required">User Name is required.</span>
                                     <span ng-show="userForm.username.$error.pattern"> Not valid User Name!</span>
-                                     <span ng-show="userForm.username.$error.maxlength">Maximum 250 characters allowed.</span>
+                                     <span ng-show="userForm.username.$error.maxlength">Maximum 50 characters allowed.</span>
                                 </span>
                             </div>
                         </div>
