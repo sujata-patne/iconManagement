@@ -4,13 +4,20 @@ var async = require("async");
 var nodemailer = require('nodemailer');
 var assingRightsManager = require( "../models/assignRightsModel");
 var config = require('../config')();
-var SitePath = config.site_path+":"+config.port;
+//var SitePath = config.site_path+":"+config.port;
+var SitePath = config.site_path;
 
 var fs = require("fs");
 var common = require("../helpers/common");
 var wlogger= require('../config/logger');
 var reload = require('require-reload')(require);
 
+/**
+ * @desc create a log file if not exist.
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.allAction = function (req, res, next) {
     var currDate = common.Pad("0",parseInt(new Date().getDate()), 2)+'_'+common.Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
     if (wlogger.logDate == currDate) {
@@ -27,7 +34,12 @@ exports.allAction = function (req, res, next) {
         next();
     }
 }
-
+/**
+ * @desc Get List of Assigned Right to Store
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.getassignrights = function (req, res, next) {
     try {
         if (req.session) {
@@ -311,7 +323,12 @@ exports.getassignrights = function (req, res, next) {
         res.status(500).json(err.message);
     }
 }
-
+/**
+ * @desc Add and update assigned rights of stores.
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.updateassignright = function (req, res, next) {
     try {
         if (req.session) {
@@ -328,6 +345,7 @@ exports.updateassignright = function (req, res, next) {
                     else {
                         EditStore();
                     }
+
                     function GetGroupId(type) {
                         var groupid = null;
                         switch (type) {
@@ -506,7 +524,6 @@ exports.updateassignright = function (req, res, next) {
 
                                             assingRightsManager.getLastInsertedMultiSelectMetaDataDetail(connection_ikon_cms, function (err, row) {
                                                 if (err) {
-
                                                     var errorInfo = {
                                                         userName: req.session.icon_UserName,
                                                         action : 'getLastInsertedMultiSelectMetaDataDetail',
@@ -526,7 +543,6 @@ exports.updateassignright = function (req, res, next) {
                                                     }
                                                     assingRightsManager.createMultiSelectMetaDataDetail(connection_ikon_cms, metadata, function( err, result ) {
                                                         if (err) {
-
                                                             var errorInfo = {
                                                                 userName: req.session.icon_UserName,
                                                                 action : 'createMultiSelectMetaDataDetail',
@@ -534,7 +550,6 @@ exports.updateassignright = function (req, res, next) {
                                                                 message : ' failed to create Multi Select MetaData Detail '+JSON.stringify(err.message)
                                                             };
                                                             wlogger.error(errorInfo);
-
                                                             connection_ikon_cms.release();
                                                             res.status(500).json(err.message);
                                                         }
@@ -582,57 +597,6 @@ exports.updateassignright = function (req, res, next) {
                                                                             message : ' Store Updated successfully'
                                                                         };
                                                                         wlogger.info(info);
-
-                                                                        var smtpTransport = nodemailer.createTransport({
-                                                                            service: "Gmail",
-                                                                            auth: {
-                                                                                user: "jetsynthesis@gmail.com",
-                                                                                pass: "j3tsynthes1s"
-                                                                            }
-                                                                        });
-                                                                        var Message = "<table style=\"border-collapse:collapse\" width=\"510\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tbody><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr>";
-                                                                        Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
-                                                                        Message += " </td></tr>";
-                                                                        Message += " <h5>Site Rights Updated.</h5>";
-                                                                        Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href='"+SitePath+"/' target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
-                                                                        Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
-                                                                        var mailOptions = {
-                                                                            to: req.body.storeUserEmail,
-                                                                            subject: 'Store Rights Assigned.',
-                                                                            html: Message
-                                                                        }
-                                                                        smtpTransport.sendMail(mailOptions, function (error, response) {
-                                                                            if (error) {
-
-                                                                                var errorInfo = {
-                                                                                    userName: req.session.icon_UserName,
-                                                                                    action : 'sendMail',
-                                                                                    responseCode:500,
-                                                                                    message : ' failed to send Mail '+JSON.stringify(error.message)
-                                                                                };
-                                                                                wlogger.error(errorInfo);
-
-                                                                                console.log(error);
-                                                                                res.end("error");
-                                                                            } else {
-
-                                                                                var info = {
-                                                                                    userName: req.session.icon_UserName,
-                                                                                    action : 'sendMail',
-                                                                                    responseCode:200,
-                                                                                    message : 'send Mail successfully'
-                                                                                };
-                                                                                wlogger.info(info);
-
-                                                                                connection_ikon_cms.release();
-                                                                                res.send({
-                                                                                    success: true,
-                                                                                    message: 'Store Updated successfully.'
-                                                                                });
-                                                                            }
-                                                                        });
-
                                                                     }
                                                                 });
                                                             } else {
@@ -689,6 +653,48 @@ exports.updateassignright = function (req, res, next) {
                                 }
                             });
                         }
+                        var smtpTransport = nodemailer.createTransport({
+                            service: "Gmail",
+                            auth: {
+                                user: "jetsynthesis@gmail.com",
+                                pass: "j3tsynthes1s"
+                            }
+                        });
+                        var Message = "<table style=\"border-collapse:collapse\" width=\"510\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tbody><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr>";
+                        Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Admin created a Store at Jetsynthesys and Assigned Rights Store. ";
+                        Message += " </td></tr>";
+                        Message += " <h5>Store Rights Assigned.</h5>";
+                        Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
+                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\"  href="+SitePath+" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                        Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
+                        var mailOptions = {
+                            to: req.body.storeUserEmail,
+                            subject: 'Store Rights Assigned.',
+                            html: Message
+                        }
+                        smtpTransport.sendMail(mailOptions, function (error, response) {
+                            if (error) {
+                                var errorInfo = {
+                                    userName: req.session.icon_UserName,
+                                    action : 'sendMail',
+                                    responseCode:500,
+                                    message : ' failed to send Mail '+JSON.stringify(error.message)
+                                };
+                                wlogger.error(errorInfo);
+
+                                console.log(error);
+                                res.end("error");
+                            } else {
+
+                                var info = {
+                                    userName: req.session.icon_UserName,
+                                    action : 'sendMail',
+                                    responseCode:200,
+                                    message : 'send Mail successfully'
+                                };
+                                wlogger.info(info);
+                            }
+                        });
                     }
 
                     function DeleteAssignFromStore() {

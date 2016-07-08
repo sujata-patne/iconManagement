@@ -1,3 +1,8 @@
+/**
+ * @desc Get Store Master List
+ * @param dbConnection
+ * @param callback
+ */
 exports.getMasterList = function( dbConnection, callback ) {
     dbConnection.query('select * from (SELECT * FROM catalogue_detail)cd '+
                         'inner join(select * from catalogue_master where cm_name in("Store") )cm on(cm.cm_id = cd.cd_cm_id)',
@@ -7,24 +12,11 @@ exports.getMasterList = function( dbConnection, callback ) {
     );
 }
 
-exports.getPaymentTypes = function( dbConnection, callback ) {
-    dbConnection.query('SELECT * FROM billing_enum_data WHERE en_type in ("payment_type")',
-        function ( err, paymentTypes ) {
-            callback( err, paymentTypes );
-        }
-    );
-}
-
-exports.getpartnerDistibutionChannels = function( dbConnection, callback ) {
-    dbConnection.query('select * from (SELECT * FROM billing_partner)bp '+
-            'inner join(select * from billing_entity_group)beg on(beg.eg_group_id =bp.partner_store_fronts) '+
-            'inner join(select * from billing_enum_data)enum on(enum.en_id =beg.eg_enum_id)',
-            function (err, partnerDistibutionChannels ) {
-                callback(err, partnerDistibutionChannels);
-            }
-    );
-}
-
+/**
+ * Get List of All Parent content types and associated child content types
+ * @param dbConnection
+ * @param callback
+ */
 exports.getContentTypes = function( dbConnection, callback ) {
     dbConnection.query('select * from (SELECT * FROM catalogue_detail)cd '+
         'inner join(select * from catalogue_master where cm_name in("Content Type") )cm on(cm.cm_id = cd.cd_cm_id) '+
@@ -35,7 +27,11 @@ exports.getContentTypes = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get List iCon Country Group List with associated country list.
+ * @param dbConnection
+ * @param callback
+ */
 exports.getIconCountryGroup = function( dbConnection, callback ) {
     /*dbConnection.query('select * from catalogue_master as cm '+
         'left join catalogue_detail as cd on cm.cm_id = cd.cd_cm_id '+
@@ -54,6 +50,11 @@ exports.getIconCountryGroup = function( dbConnection, callback ) {
         }
     );
 }
+/**
+ * @desc Get List of iCon country list
+ * @param dbConnection
+ * @param callback
+ */
 exports.getIconCountry = function( dbConnection, callback ) {
     dbConnection.query('select DISTINCT cd_id,cd_name from '+
         '(select CASE  WHEN groupid is null THEN icn_cnt_name ELSE country_name  END AS country_name, '+
@@ -70,6 +71,11 @@ exports.getIconCountry = function( dbConnection, callback ) {
         }
     );
 }
+/**
+ * Get List of icon country list for all Vendors
+ * @param dbConnection
+ * @param callback
+ */
 exports.getVendorCountry = function( dbConnection, callback ) {
     dbConnection.query('SELECT distinct vd_id,vd_name,r_country_distribution_rights FROM'+
                        '(select * from icn_vendor_detail)vd '+
@@ -81,21 +87,30 @@ exports.getVendorCountry = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * Get list Country Groups with associated country list with segregation of group and individual country.
+ * @param dbConnection
+ * @param callback
+ */
 exports.getCountries = function( dbConnection, callback ) {
-    dbConnection.query('select case when groupname is null then icc_country_name ELSE cd.cd_name END AS cd_name, '+
-            'case when groupname is null then icc_country_id ELSE cd.cd_id END AS cd_id, '+
-            'case when groupname is null  then  null ELSE "group"  END AS group_status '+
-            'from catalogue_master as cm '+
-            'right join catalogue_detail as cd ON cm.cm_id = cd.cd_cm_id '+
-            'left join icn_country_currency AS g_cd on(g_cd.icc_country_name =cd.cd_name) '+
-            'left join (select cm_name as groupname from catalogue_master)cm_group on(cm_group.groupname =  cd.cd_name) '+
-            'WHERE cm.cm_name in("icon_geo_location") ',
-        function ( err, countries ) {
-            callback( err, countries );
-        }
-    );
+    var query = 'select case when groupname is null then icc_country_name ELSE cd.cd_name END AS cd_name, '+
+        'case when groupname is null then icc_country_id ELSE cd.cd_id END AS cd_id, '+
+        'case when groupname is null  then  null ELSE "group"  END AS group_status '+
+        'from catalogue_master as cm '+
+        'right join catalogue_detail as cd ON cm.cm_id = cd.cd_cm_id '+
+        'left join icn_country_currency AS g_cd on(g_cd.icc_country_name =cd.cd_name) '+
+        'left join (select cm_name as groupname from catalogue_master)cm_group on(cm_group.groupname =  cd.cd_name) '+
+        'WHERE cm.cm_name in("icon_geo_location") ';
+    //console.log(query);
+    dbConnection.query(query, function ( err, countries ) {
+        callback( err, countries );
+    });
 }
+/**
+ * @desc Get List of all Stores
+ * @param dbConnection
+ * @param callback
+ */
 exports.getStores = function( dbConnection, callback ) {
     dbConnection.query('select * from icn_store',
         function (err, stores) {
@@ -103,7 +118,11 @@ exports.getStores = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * Get List of all stores along with associated store users.
+ * @param dbConnection
+ * @param callback
+ */
 exports.getStoresUserDetails = function( dbConnection, callback ) {
     dbConnection.query('select * from icn_store as s ' +
         'left join icn_store_user as su on s.st_id = su.su_st_id ' +
@@ -114,7 +133,11 @@ exports.getStoresUserDetails = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Store's Distribution Channels list
+ * @param dbConnection
+ * @param callback
+ */
 exports.getStoreChannels = function( dbConnection, callback ) {
     dbConnection.query('select * from (select * from icn_store)st '+
                         'inner join (select * from multiselect_metadata_detail ) mmd on (st.st_front_type=mmd.cmd_group_id) ' +
@@ -125,7 +148,11 @@ exports.getStoreChannels = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * Get Assigned Country List of Stores
+ * @param dbConnection
+ * @param callback
+ */
 exports.getAssignedCountries = function( dbConnection, callback ) {
     dbConnection.query('select * from (SELECT * FROM icn_store)st ' +
                         'inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_country_distribution_rights)',
@@ -134,7 +161,11 @@ exports.getAssignedCountries = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Assigned Payment Types of Stores
+ * @param dbConnection
+ * @param callback
+ */
 exports.getAssignedPaymentTypes = function( dbConnection, callback ) {
     dbConnection.query('select * from (SELECT * FROM icn_store)st ' +
                         'inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_payment_type)',
@@ -143,7 +174,11 @@ exports.getAssignedPaymentTypes = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Assigned Payment Channels of Stores
+ * @param dbConnection
+ * @param callback
+ */
 exports.getAssignedPaymentChannels = function( dbConnection, callback ) {
     dbConnection.query('select * from (SELECT * FROM icn_store)st ' +
                         'inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_payment_channel)',
@@ -152,7 +187,11 @@ exports.getAssignedPaymentChannels = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Assigned Content Types of Stores
+ * @param dbConnection
+ * @param callback
+ */
 exports.getAssignedContentTypes = function( dbConnection, callback ) {
     dbConnection.query('select * from (SELECT * FROM icn_store)st ' +
                         'inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_content_type)',
@@ -161,7 +200,11 @@ exports.getAssignedContentTypes = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Assigned Vendors of Stores
+ * @param dbConnection
+ * @param callback
+ */
 exports.getAssignedVendors = function( dbConnection, callback ) {
     dbConnection.query('select * from (SELECT * FROM icn_store)st ' +
                         'inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_vendor)',
@@ -170,7 +213,11 @@ exports.getAssignedVendors = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Last Insertion Id of Multiselection table
+ * @param dbConnection
+ * @param callback
+ */
 exports.getLastInsertedMultiSelectMetaDataDetail = function( dbConnection, callback ) {
     dbConnection.query('select max(cmd_id) as id from multiselect_metadata_detail',
         function (err, multiSelectMetadataRow ) {
@@ -178,7 +225,11 @@ exports.getLastInsertedMultiSelectMetaDataDetail = function( dbConnection, callb
         }
     );
 }
-
+/**
+ * @desc Get Last Insertion Group Id of Multiselection table
+ * @param dbConnection
+ * @param callback
+ */
 exports.getLastInsertedMultiSelectMetaDataGroupId = function( dbConnection, callback ) {
     dbConnection.query('select max(cmd_group_id) as id from multiselect_metadata_detail',
         function (err, result) {
@@ -186,7 +237,12 @@ exports.getLastInsertedMultiSelectMetaDataGroupId = function( dbConnection, call
         }
     );
 }
-
+/**
+ * @desc Insert Data into Multiselection table
+ * @param dbConnection
+ * @param multiSelecMetaDataInfo
+ * @param callback
+ */
 exports.createMultiSelectMetaDataDetail = function( dbConnection, multiSelecMetaDataInfo, callback ) {
     dbConnection.query('INSERT INTO multiselect_metadata_detail SET ?', multiSelecMetaDataInfo,
         function (err, result) {
@@ -194,7 +250,13 @@ exports.createMultiSelectMetaDataDetail = function( dbConnection, multiSelecMeta
         }
     );
 }
-
+/**
+ * @desc Update Store Details into DB
+ * @param dbConnection
+ * @param updateQueryData
+ * @param storeId
+ * @param callback
+ */
 exports.updateIcnStore = function( dbConnection, updateQueryData, storeId, callback ) {
     dbConnection.query('UPDATE icn_store ' +
                         'SET ' +
@@ -220,7 +282,13 @@ exports.updateIcnStore = function( dbConnection, updateQueryData, storeId, callb
         }
     );
 }
-
+/**
+ * Update Store's Modified Date and Modified By Name
+ * @param dbConnection
+ * @param updateQuery
+ * @param storeId
+ * @param callback
+ */
 exports.updateIcnStoreByStoreUser = function( dbConnection, updateQuery, storeId, callback ) {
     var query = 'UPDATE icn_store ' +
         'SET ' +
@@ -234,10 +302,16 @@ exports.updateIcnStoreByStoreUser = function( dbConnection, updateQuery, storeId
         }
     );
 }
-
+/**
+ * @desc Delete records in Multiselection table
+ * @param dbConnection
+ * @param cmd_group_id
+ * @param cmd_entity_detail
+ * @param callback
+ */
 exports.deleteMultiSelectMetaDataDetail = function( dbConnection, cmd_group_id, cmd_entity_detail, callback ){
     dbConnection.query('DELETE FROM multiselect_metadata_detail ' +
-                        'WHERE cmd_group_id= ? and  cmd_entity_detail =?', [cmd_group_id, cmd_entity_detail],
+                        'WHERE cmd_group_id= ? and  cmd_entity_detail = ?', [cmd_group_id, cmd_entity_detail],
         function (err, row, fields) {
             callback( err, row, fields );
         }

@@ -9,7 +9,12 @@ var reload = require('require-reload')(require);
 var config = require('../config')();
 var common = require("../helpers/common");
 
-
+/**
+ * @desc create a log file if not exist.
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.allAction = function (req, res, next) {
     var currDate = common.Pad("0",parseInt(new Date().getDate()), 2)+'_'+common.Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
     if (wlogger.logDate == currDate) {
@@ -26,15 +31,18 @@ exports.allAction = function (req, res, next) {
         next();
     }
 }
-
+/**
+ * @desc Get Detials to Manage Content Type Data
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.getmanagecontentdata = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-
-                    if(err)
-                    {
+                    if(err) {
                         var errorInfo = {
                             userName: req.session.icon_UserName,
                             action : 'getmanagecontentdata.getConnection',
@@ -43,8 +51,7 @@ exports.getmanagecontentdata = function (req, res, next) {
                         };
                         wlogger.error(errorInfo);
                     }
-                    else
-                    {
+                    else {
                         var info = {
                             userName: req.session.icon_UserName,
                             action : 'getmanagecontentdata.getConnection',
@@ -53,7 +60,6 @@ exports.getmanagecontentdata = function (req, res, next) {
                         };
                         wlogger.info(info);
                     }
-
                     async.parallel({
                         ContentMasterList: function (callback) {
                             contentManager.getContentMasterList( connection_ikon_cms, function (err, ContentMasterList) {
@@ -198,13 +204,17 @@ exports.getmanagecontentdata = function (req, res, next) {
         res.status(500).json(error.message);
     }
 }
-
+/**
+ * @desc Add and update Child Content Types
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.addeditcontenttype = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-
                     if(err)
                     {
                         var errorInfo = {

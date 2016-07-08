@@ -1,31 +1,9 @@
 
-exports.getPaymentTypes = function( dbConnection, callback ) {
-    dbConnection.query('SELECT * FROM billing_enum_data WHERE en_type in ("payment_type")',
-        function ( err, paymentTypes ) {
-            callback( err, paymentTypes );
-        }
-    );
-}
-
-exports.getpartnerDistibutionChannels = function( dbConnection, callback ) {
-    dbConnection.query('select * from (SELECT * FROM billing_partner)bp '+
-            'inner join(select * from billing_entity_group)beg on(beg.eg_group_id =bp.partner_store_fronts) '+
-            'inner join(select * from billing_enum_data)enum on(enum.en_id =beg.eg_enum_id)',
-            function (err, partnerDistibutionChannels ) {
-                callback(err, partnerDistibutionChannels);
-            }
-    );
-}
-
-exports.getStores = function( dbConnection, callback ) {
-    dbConnection.query('select * from icn_store',
-        function (err, stores) {
-            callback(err, stores );
-        }
-    );
-}
-
-/* User Rights Management function */
+/**
+ * @desc Get LAst insertion Id of User Role Mapping Table
+ * @param dbConnection
+ * @param callback
+ */
 exports.getLastInsertedIdFromUserRoleMapping = function( dbConnection, callback ) {
     dbConnection.query('select max(id) as id from user_role_mapping',
         function ( err, result) {
@@ -36,6 +14,12 @@ exports.getLastInsertedIdFromUserRoleMapping = function( dbConnection, callback 
         }
     );
 }
+/**
+ * Get Existing User Role Mapping for given user
+ * @param dbConnection
+ * @param userId
+ * @param callback
+ */
 exports.getExistingMappingforUser = function( dbConnection,userId, callback ) {
     dbConnection.query(' select * from user_role_mapping where isnull(crud_isactive) and user_id='+  userId,
         function ( err, result) {
@@ -43,9 +27,14 @@ exports.getExistingMappingforUser = function( dbConnection,userId, callback ) {
         }
     );
 }
+/**
+ * @desc Update User Role Mapping in DB
+ * @param dbConnection
+ * @param data
+ * @param callback
+ */
 exports.updateExistingMappingforUser = function( dbConnection, data, callback ) {
-    console.log(data);
-    if(data.icn_vendor_detail_id != null) {
+     if(data.icn_vendor_detail_id != null) {
         //var query = 'UPDATE user_role_mapping SET modified_by = "' + data.modified_by + '" , modified_at = "' + data.modified_at + '" , crud_isactive = ' + data.id + ' where user_id = ' + data.user_id + ' and role_master_id = ' + data.role_master_id + ' and icn_vendor_detail_id = ' + data.icn_vendor_detail_id;
         var query = 'UPDATE user_role_mapping SET modified_by = ? , ' +
             'modified_at = ? , ' +
@@ -67,14 +56,12 @@ exports.updateExistingMappingforUser = function( dbConnection, data, callback ) 
         }
     );
 }
-exports.getExistingMapping = function( dbConnection,userId, callback ) {
-    dbConnection.query('select * from user_role_mapping where user_id='+  userId,
-        function ( err, result) {           
-            callback(err, result);
-        }
-    );
-}
-
+/**
+ * @desc Get Existing User Role Mapping for given user
+ * @param dbConnection
+ * @param userId
+ * @param callback
+ */
 exports.getExistingUserRoleMapping = function( dbConnection,userId, callback ) {
     var query = 'select * from user_role_mapping as ur ' +
     'join role_module_mapping as rm on ur.role_master_id = rm.role_master_id ' +
@@ -84,7 +71,12 @@ exports.getExistingUserRoleMapping = function( dbConnection,userId, callback ) {
         }
     );
 }
-
+/**
+ * @desc Check Role Assigned to given User
+ * @param dbConnection
+ * @param userRoleStore
+ * @param callback
+ */
 exports.isUserRoleExist= function(dbConnection, userRoleStore, callback) {
     if(userRoleStore.icn_vendor_detail_id != null) {
         var query = 'Select id as mappingid from user_role_mapping where user_id = '+  userRoleStore.user_id+' and role_master_id = ' +userRoleStore.role_master_id+' and icn_vendor_detail_id = '+userRoleStore.icn_vendor_detail_id + ' and isnull(crud_isactive) ';
@@ -121,7 +113,12 @@ exports.isUserRoleExist= function(dbConnection, userRoleStore, callback) {
     }*/
 
 }
-
+/**
+ * Update User role Mapping table
+ * @param dbConnection
+ * @param userRightData
+ * @param callback
+ */
 exports.updateUserRightMapping= function(dbConnection, userRightData, callback){
     dbConnection.query('UPDATE user_role_mapping SET crud_isactive = null  where id='+userRightData.id,
         function ( err, result) {
@@ -129,7 +126,12 @@ exports.updateUserRightMapping= function(dbConnection, userRightData, callback){
         }
     );
 }
-
+/**
+ * @desc Insert record into User Role Table
+ * @param dbConnection
+ * @param userRightData
+ * @param callback
+ */
 exports.insertUserRightMapping= function(dbConnection, userRightData, callback){
     dbConnection.query('INSERT INTO user_role_mapping SET ?', userRightData,
         function ( err, result) {
@@ -138,15 +140,12 @@ exports.insertUserRightMapping= function(dbConnection, userRightData, callback){
     );
 }
 
-exports.getAssignedVendors = function( dbConnection, callback ) {
-    dbConnection.query('select * from (SELECT * FROM icn_store)st ' +
-        'inner join  (select * from multiselect_metadata_detail )mlm on (mlm.cmd_group_id = st.st_vendor)',
-        function (err, assignedVendors ) {
-            callback(err, assignedVendors );
-        }
-    );
-}
-
+/**
+ * @desc Get List of Stores for All Users
+ * @param dbConnection
+ * @param data
+ * @param callback
+ */
 exports.getUserIds=function( dbConnection, data, callback ) {
     var orderBy = '';
     if(data.orderBy){
@@ -161,7 +160,11 @@ exports.getUserIds=function( dbConnection, data, callback ) {
         callback(err, userIds );
     });
 }
-
+/**
+ * Get Master Vendor List
+ * @param dbConnection
+ * @param callback
+ */
 exports.getVendors = function( dbConnection, callback ) {
     dbConnection.query('SELECT * FROM icn_vendor_detail',
         function ( err, vendors ) {
@@ -169,7 +172,11 @@ exports.getVendors = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Master Module List
+ * @param dbConnection
+ * @param callback
+ */
 exports.getModules = function( dbConnection, callback ) {
     dbConnection.query('SELECT * FROM module_master',
         function ( err, modules ) {
@@ -177,7 +184,11 @@ exports.getModules = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * Get Master Role List
+ * @param dbConnection
+ * @param callback
+ */
 exports.getRoles = function( dbConnection, callback ) {
     dbConnection.query('SELECT * FROM role_master;',
         function ( err, roles ) {
@@ -185,38 +196,27 @@ exports.getRoles = function( dbConnection, callback ) {
         }
     );
 }
+/**
+ * Get Associated list of Modules with Role
+ * @param dbConnection
+ * @param callback
+ */
 exports.getRoleModuleMappings = function( dbConnection, callback ) {
-    dbConnection.query('SELECT rmm.id,role_master_id,role_name, module_master_id, module_name, parent_id  FROM role_module_mapping rmm inner join module_master mm on rmm.module_master_id=mm.id inner join role_master rm on rmm.role_master_id=rm.id;',
+    dbConnection.query('SELECT rmm.id,role_master_id,role_name, module_master_id, module_name, parent_id  ' +
+        'FROM role_module_mapping rmm inner join module_master mm on rmm.module_master_id=mm.id inner join role_master rm on rmm.role_master_id=rm.id',
         function ( err, roleModuleMappings ) {
             callback( err, roleModuleMappings );
         }
     );
 }
 
-exports.getLastInsertedMultiSelectMetaDataDetail = function( dbConnection, callback ) {
-    dbConnection.query('select max(cmd_id) as id from multiselect_metadata_detail',
-        function (err, multiSelectMetadataRow ) {
-            callback(err, multiSelectMetadataRow );
-        }
-    );
-}
-
-exports.getLastInsertedMultiSelectMetaDataGroupId = function( dbConnection, callback ) {
-    dbConnection.query('select max(cmd_group_id) as id from multiselect_metadata_detail',
-        function (err, result) {
-            callback( err, result );
-        }
-    );
-}
-
-exports.createMultiSelectMetaDataDetail = function( dbConnection, multiSelecMetaDataInfo, callback ) {
-    dbConnection.query('INSERT INTO multiselect_metadata_detail SET ?', multiSelecMetaDataInfo,
-        function (err, result) {
-            callback( err, result )
-        }
-    );
-}
-
+/**
+ * @desc Update Store Table
+ * @param dbConnection
+ * @param updateQueryData
+ * @param storeId
+ * @param callback
+ */
 exports.updateIcnStore = function( dbConnection, updateQueryData, storeId, callback ) {
     dbConnection.query('UPDATE icn_store ' +
                         'SET ' +
@@ -243,19 +243,13 @@ exports.updateIcnStore = function( dbConnection, updateQueryData, storeId, callb
     );
 }
 
-exports.updateIcnStoreByStoreUser = function( dbConnection, updateQuery, storeId, callback ) {
-    dbConnection.query('UPDATE icn_store ' +
-                        'SET ' +
-                            'st_modified_on=?,' +
-                            'st_modified_by=? ' +
-                        'WHERE ' +
-                            'st_id = ?', [ updateQuery.st_modified_on, updateQuery.st_modified_by, storeId ],
-        function (err, result) {
-            callback( err, result );
-        }
-    );
-}
-
+/**
+ * @desc Delete Records from MultiSelct Table
+ * @param dbConnection
+ * @param cmd_group_id
+ * @param cmd_entity_detail
+ * @param callback
+ */
 exports.deleteMultiSelectMetaDataDetail = function( dbConnection, cmd_group_id, cmd_entity_detail, callback ){
     dbConnection.query('DELETE FROM multiselect_metadata_detail ' +
                         'WHERE cmd_group_id= ? and  cmd_entity_detail =?', [cmd_group_id, cmd_entity_detail],

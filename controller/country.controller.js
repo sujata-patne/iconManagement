@@ -9,7 +9,12 @@ var reload = require('require-reload')(require);
 var config = require('../config')();
 var common = require("../helpers/common");
 
-
+/**
+ * @desc create a log file if not exist.
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.allAction = function (req, res, next) {
     var currDate = common.Pad("0",parseInt(new Date().getDate()), 2)+'_'+common.Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
     if (wlogger.logDate == currDate) {
@@ -26,15 +31,18 @@ exports.allAction = function (req, res, next) {
         next();
     }
 }
-
+/**
+ * Get Master Country List, Icon Country List, Country Group List
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.getcountrydata = function (req, res, next) {
     try {
         if (req.session) {
             if (req.session.icon_UserName) {
                 mysql.getConnection('CMS', function (err, connection_ikon_cms) {
-
-                    if(err)
-                    {
+                    if(err) {
                         var errorInfo = {
                             userName: req.session.icon_UserName,
                             action : 'getcountrydata.getConnection',
@@ -42,9 +50,7 @@ exports.getcountrydata = function (req, res, next) {
                             message : ' failed to get Connection '+JSON.stringify(err.message)
                         };
                         wlogger.error(errorInfo);
-                    }
-                    else
-                    {
+                    } else {
                         var info = {
                             userName: req.session.icon_UserName,
                             action : 'getcountrydata.getConnection',
@@ -53,7 +59,6 @@ exports.getcountrydata = function (req, res, next) {
                         };
                         wlogger.info(info);
                     }
-
                     async.parallel({
                         CountryList: function (callback) {
                             countryManager.getCountryList(connection_ikon_cms, function( err, CountryList ) {
@@ -235,7 +240,12 @@ exports.getcountrydata = function (req, res, next) {
         res.status(500).json(err.message);
     }
 }
-
+/**
+ * @desc Add and Update Icon Country List / Country Group
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.submitcountry = function (req, res, next) {
     try {
         if (req.session) {
@@ -353,7 +363,7 @@ exports.submitcountry = function (req, res, next) {
                                             cd_desc: null,
                                             cd_desc1: null
                                         }
-                                        console.log(icon_country);
+                                        //console.log(icon_country);
                                         countryManager.createCatalogDetailForCountry( connection_ikon_cms, icon_country, function (err, result) {
                                             if (err) {
 
@@ -785,12 +795,13 @@ exports.submitcountry = function (req, res, next) {
                         }
                     }
                     function GetAllReturnData() {
-                        countryManager.getCountries( connection_ikon_cms, function( err, Countrys ) {
+                        //countryManager.getCountries( connection_ikon_cms, function( err, Countrys ) {
+                        countryManager.getCountryDetails( connection_ikon_cms, function( err, Countrys ) {
                             if (err) {
 
                                 var errorInfo = {
                                     userName: req.session.icon_UserName,
-                                    action : 'getCountries',
+                                    action : 'getCountryDetails',
                                     responseCode:500,
                                     message : req.session.icon_UserName +' failed to get Countries '+JSON.stringify(err.message)
                                 };
@@ -802,7 +813,7 @@ exports.submitcountry = function (req, res, next) {
                             else {
                                 var info = {
                                     userName: req.session.icon_UserName,
-                                    action : 'getCountries',
+                                    action : 'getCountryDetails',
                                     responseCode:200,
                                     message : ' get Countries successfully'
                                 };

@@ -1,3 +1,8 @@
+/**
+ * @desc Get Country List, Country Group List
+ * @param dbConnection
+ * @param callback
+ */
 exports.getCountryList = function( dbConnection, callback ){
     /*dbConnection.query('select * from (SELECT * FROM catalogue_detail)cd ' +
                         'inner join(select * from catalogue_master where cm_name in("global_country_list","country_group","icon_geo_location") )cm on(cm.cm_id = cd.cd_cm_id)  ' +
@@ -9,7 +14,11 @@ exports.getCountryList = function( dbConnection, callback ){
         }
     );
 }
-
+/**
+ * @desc Get Country Details
+ * @param dbConnection
+ * @param callback
+ */
 exports.getCountryCurrency = function( dbConnection, callback ){
     dbConnection.query('select icc_country_id as cd_id, icc_country_name as cd_name from icn_country_currency',
         function (err, countryCurrencyList ) {
@@ -17,7 +26,11 @@ exports.getCountryCurrency = function( dbConnection, callback ){
         }
     );
 }
-
+/**
+ * Get All Country List, All Country Group list
+ * @param dbConnection
+ * @param callback
+ */
 exports.getMasterCountryList = function( dbConnection, callback ){
     dbConnection.query('select * from catalogue_master where cm_name in("country_group","icon_geo_location")',
         function (err, masterCountryList ) { //"global_country_list",
@@ -25,7 +38,12 @@ exports.getMasterCountryList = function( dbConnection, callback ){
         }
     );
 }
-
+/**
+ * @desc Get Country Group Details By Name
+ * @param dbConnection
+ * @param groupName
+ * @param callback
+ */
 exports.getCountryGroupByGroupName = function( dbConnection, groupName, callback ) {
     dbConnection.query('select * from (SELECT * FROM catalogue_detail  where lower(cd_name) =?)cd ' +
                         'inner join(select * from catalogue_master where cm_name in("country_group") )cm on(cm.cm_id = cd.cd_cm_id)',
@@ -35,7 +53,11 @@ exports.getCountryGroupByGroupName = function( dbConnection, groupName, callback
         }
     );
 }
-
+/**
+ * @desc Get Last insertion Id of Catalog Details Table
+ * @param dbConnection
+ * @param callback
+ */
 exports.getLastInsertedCatalogueId = function( dbConnection, callback ) {
     dbConnection.query('select max(cd_id) as id from catalogue_detail',
         function (err, row) {
@@ -43,7 +65,11 @@ exports.getLastInsertedCatalogueId = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Last Insertion Id of Catalog Master table
+ * @param dbConnection
+ * @param callback
+ */
 exports.getLastInsertedIdFromCatalogMaster = function( dbConnection, callback ) {
     dbConnection.query('select max(cm_id) as id from catalogue_master',
         function (err, row) {
@@ -51,7 +77,12 @@ exports.getLastInsertedIdFromCatalogMaster = function( dbConnection, callback ) 
         }
     );
 }
-
+/**
+ * Insert record into Catalog Detail table
+ * @param dbConnection
+ * @param icon_country
+ * @param callback
+ */
 exports.createCatalogDetailForCountry = function( dbConnection, icon_country, callback ) {
     dbConnection.query('INSERT INTO catalogue_detail SET ?', icon_country,
         function (err, result) {
@@ -59,7 +90,12 @@ exports.createCatalogDetailForCountry = function( dbConnection, icon_country, ca
         }
     );
 }
-
+/**
+ * @desc Insert Records into Catalog Master Table
+ * @param dbConnection
+ * @param country_master_group
+ * @param callback
+ */
 exports.createCountryMasterGroup = function( dbConnection, country_master_group, callback ) {
     dbConnection.query('INSERT INTO catalogue_master SET ?', country_master_group,
         function (err, result) {
@@ -68,9 +104,15 @@ exports.createCountryMasterGroup = function( dbConnection, country_master_group,
         }
     );
 }
-
+/**
+ * @desc Delete record from Catalog Details Table
+ * @param dbConnection
+ * @param cd_id
+ * @param groupId
+ * @param callback
+ */
 exports.deleteCountryByGroupId = function( dbConnection, cd_id, groupId, callback ) {
-    console.log('select * from catalogue_detail WHERE cd_id= '+cd_id+' and  cd_cm_id =' +groupId)
+    //console.log('select * from catalogue_detail WHERE cd_id= '+cd_id+' and  cd_cm_id =' +groupId)
     dbConnection.query('DELETE FROM catalogue_detail WHERE cd_id= ? and  cd_cm_id =?',
         [cd_id, groupId],
         function (err, row, fields) {
@@ -78,14 +120,23 @@ exports.deleteCountryByGroupId = function( dbConnection, cd_id, groupId, callbac
         }
     );
 }
-
-exports.getCountries = function( dbConnection, callback ) {
+/**
+ * @desc Get iCon Country List, iCon Country Group List,
+ * @param dbConnection
+ * @param callback
+ */
+exports.getCountryDetails = function( dbConnection, callback ) {
     dbConnection.query('select * from catalogue_detail as cd inner join catalogue_master as cm on(cm.cm_id = cd.cd_cm_id) '+
             'where cm_name in("country_group","icon_geo_location") ', function (err, countrys) {
             callback( err, countrys );
         }
     );
 }
+/**
+ * @desc Get Country Group Details
+ * @param dbConnection
+ * @param callback
+ */
 exports.getCountryGroups = function( dbConnection, callback ) {
     dbConnection.query('select cm_group.cm_id,cm_group.cm_name, cd_group.cd_id, cd_group.cd_name '+
     'from (SELECT * FROM catalogue_detail)cd '+
@@ -105,13 +156,19 @@ exports.getCountryGroups = function( dbConnection, callback ) {
         }
     );
 }
-
+/**
+ * @desc Get Country and Country Group Details
+ * @param dbConnection
+ * @param callback
+ */
 exports.countryGroups = function( dbConnection, callback ){
     /*dbConnection.query('select * from (SELECT * FROM catalogue_detail)cd ' +
      'inner join(select * from catalogue_master where cm_name in("country_group") )cm on(cm.cm_id = cd.cd_cm_id) ' +
      'inner join(select * from catalogue_master  )cm_group on(cm_group.cm_name = cd.cd_name) ' +
      'inner join(select * from catalogue_detail )cd_group on(cd_group.cd_cm_id = cm_group.cm_id)',*/
-    var query = dbConnection.query('select cm_id,cm_name,cd_id,cd_name from (select cd_name as group_name from catalogue_master as a , catalogue_detail as b where a.cm_name in("country_group") and a.cm_id = b.cd_cm_id )cm  inner join(select cm_id,cm_name,cd_id as icn_country_id,cd_name from catalogue_master as a,catalogue_detail as b where a.cm_id = b.cd_cm_id)cd on(cm.group_name = cd.cm_name) left join (select icc_country_name as country_name, icc_country_id as cd_id from icn_country_currency) AS g_cd on(g_cd.country_name =cd.cd_name)',
+    var query = dbConnection.query('select cm_id,cm_name,cd_id,cd_name from (select cd_name as group_name from catalogue_master as a , catalogue_detail as b where a.cm_name in("country_group") and a.cm_id = b.cd_cm_id )cm  ' +
+        'inner join(select cm_id,cm_name,cd_id as icn_country_id,cd_name from catalogue_master as a,catalogue_detail as b where a.cm_id = b.cd_cm_id)cd on(cm.group_name = cd.cm_name) ' +
+        'left join (select icc_country_name as country_name, icc_country_id as cd_id from icn_country_currency) AS g_cd on(g_cd.country_name =cd.cd_name)',
         function (err, countryGroups) {
             callback(err, countryGroups );
         }

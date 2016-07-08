@@ -14,6 +14,12 @@ var algorithm = 'aes-256-ctr'; //Algorithm used for encrytion
 var password = 'd6F3Efeq'; //Encryption password
 var common = require("../helpers/common");
 
+/**
+ * @desc create a log file if not exist.
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.allAction = function (req, res, next) {
     var currDate = common.Pad("0",parseInt(new Date().getDate()), 2)+'_'+common.Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
     if (wlogger.logDate == currDate) {
@@ -30,7 +36,12 @@ exports.allAction = function (req, res, next) {
         next();
     }
 }
-
+/**
+ * @desc Get Icon Management Menu Pages
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.pages = function (req, res, next) {
     var role;
     var pagesjson = [
@@ -59,20 +70,12 @@ exports.pages = function (req, res, next) {
         res.redirect('/accountlogin');
     }
 }
-
-//exports.login = function (req, res, next) {
-//    if (req.session) {
-//        if (req.session.icon_UserName) {
-//            res.redirect("/#/plan-list");
-//        }
-//        else {
-//            res.render('account-login', { error: '' });
-//        }
-//    }
-//    else {
-//        res.render('account-login', { error: '' });
-//    }
-//}
+/**
+ * @desc Get Login Details for valid user
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.login = function (req, res, next) {
     if(req.cookies.icon_remember == 1 && req.cookies.icon_username != '' ){
         mysql.getConnection('CMS', function (err, connection_ikon_cms) {
@@ -193,6 +196,12 @@ exports.login = function (req, res, next) {
         res.render('account-login', { error: '' });
     }
 }
+/**
+ * Logout user and clear associated data
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.logout = function (req, res, next) {
     try {
         if (req.session) {
@@ -258,6 +267,12 @@ exports.logout = function (req, res, next) {
         res.render('account-login', { error: error.message });
     }
 }
+/**
+ * @desc Authenticate for valid user
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.authenticate = function (req, res, next) {
     try {
         mysql.getConnection('CMS', function (err, connection_ikon_cms) {
@@ -291,8 +306,14 @@ exports.authenticate = function (req, res, next) {
         res.render('account-login', { error: 'Error in database connection' });
     }
 }
-
-
+/**
+ * Check User Role and Set User Data into session for Valid User
+ * @param dbConnection
+ * @param username
+ * @param password
+ * @param req
+ * @param res
+ */
 function userAuthDetails(dbConnection, username,password,req,res){
 
     userManager.getIcnLoginDetails( dbConnection, username, password, function( err, row ){
@@ -413,6 +434,11 @@ function userAuthDetails(dbConnection, username,password,req,res){
         }
     });
 }
+/**
+ * @desc Get Menus and associated Page List according to User Role
+ * @param role
+ * @returns {Array}
+ */
 function getPages(role) {
     //{ 'pagename': 'Assign Rights', 'href': 'assign-right', 'id': 'assign-right', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
     //{ 'pagename': 'Add/Edit Store', 'href': 'add-store', 'id': 'store', 'class': 'fa fa-briefcase', 'submenuflag': '0', 'sub': [] },
@@ -435,18 +461,27 @@ function getPages(role) {
 
     return pagesjson;
 }
-
+/**
+ * @desc View Forgot Password Page
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.viewForgotPassword = function (req, res, next) {
     req.session = null;
     res.render('account-forgot', { error: '', msg: '' });
 }
-
+/**
+ * @desc Send User Details for forgotten Password
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.forgotPassword = function (req, res, next) {
     try {
         mysql.getConnection('CMS', function (err, connection_central) {
             userManager.getUserDetailsByIdByEmailId( connection_central, req.body.userid, req.body.emailid, function( err, row, fields ) {
                 if (err) {
-
                     var ErrorInfo = {
                         userName: req.body.userid,
                         action : 'getUserDetailsByIdByEmailId',
@@ -458,7 +493,6 @@ exports.forgotPassword = function (req, res, next) {
                 }
                 else {
                     if (row.length > 0) {
-
                         var smtpTransport = nodemailer.createTransport({
                             service: "Gmail",
                             auth: {
@@ -473,7 +507,6 @@ exports.forgotPassword = function (req, res, next) {
                         }
                         smtpTransport.sendMail(mailOptions, function (error, response) {
                             if (error) {
-
                                 var ErrorInfo = {
                                     userName: req.body.userid,
                                     action : 'sendMail',
@@ -537,12 +570,21 @@ exports.forgotPassword = function (req, res, next) {
          res.render('account-forgot', { error: 'Error in database connection.' });
     }
 }
-
+/**
+ * @desc View Change Password Page
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.viewChangePassword = function (req, res, next) {
     req.session = null;
     res.render('account-changepassword', { error: '' });
 }
-
+/**
+ * @desc Change User Password
+ * @param req
+ * @param res
+ */
 exports.changePassword = function (req, res) {
     try {
 		if (req.session) {
@@ -550,10 +592,8 @@ exports.changePassword = function (req, res) {
                 var session = req.session;
                 mysql.getConnection('CMS', function (err, connection_central) {
                     if (req.body.oldpassword == session.icon_Password) {
-						
                         userManager.updateUserDetails( connection_central, req.body.newpassword, new Date(), session.icon_UserId, function (err, result) {
                             if (err) {
-
                                 var ErrorInfo = {
                                     userName: req.session.icon_UserName,
                                     action : 'updateUserDetails',
@@ -566,10 +606,7 @@ exports.changePassword = function (req, res) {
                                 res.status(500).json(err.message);
                             }
                             else {
-								
 								session.icon_Password = req.body.newpassword;
-								
-								
                                 var smtpTransport = nodemailer.createTransport({
                                     service: "Gmail",
                                     auth: {
@@ -577,16 +614,13 @@ exports.changePassword = function (req, res) {
                                         pass: "j3tsynthes1s"
                                     }
                                 });
-
                                 var mailOptions = {
                                     to: session.icon_Email,
                                     subject: 'Change Password',
                                     html: "<p>Hi, " + session.icon_UserName + " <br />This is your password: " + req.body.newpassword + "</p>"
                                 }
-								
                                 smtpTransport.sendMail(mailOptions, function (error, response) {
                                     if (error) {
-
                                         var ErrorInfo = {
                                             userName: req.session.icon_UserName,
                                             action : 'sendMail',
@@ -594,11 +628,9 @@ exports.changePassword = function (req, res) {
                                             message :'Failed to send mail. '+JSON.stringify(error.message)
                                         };
                                         wlogger.error(ErrorInfo);
-
                                         connection_central.release();
                                         res.end("error");
                                     } else {
-
                                         var info = {
                                             userName: req.session.icon_UserName,
                                             action : 'sendMail',
@@ -606,10 +638,8 @@ exports.changePassword = function (req, res) {
                                             message :'EMail send successfully'
                                         };
                                         wlogger.info(info);
-
 										connection_central.release();
                                         res.send({ success: true, message: 'Password updated successfully. Please check your mail' });
-
                                         var info = {
                                             userName: req.session.icon_UserName,
                                             action : 'updateUserDetails',
@@ -637,7 +667,6 @@ exports.changePassword = function (req, res) {
                 })
             }
             else {
-
                 var ErrorInfo = {
                     userName: 'Unknown User',
                     action : 'changePassword',
@@ -645,12 +674,10 @@ exports.changePassword = function (req, res) {
                     message :'User session is null.'
                 };
                 wlogger.error(ErrorInfo);
-
                 res.redirect('/accountlogin');
             }
         }
         else {
-
             var ErrorInfo = {
                 userName: 'Unknown User',
                 action : 'changePassword',
@@ -663,7 +690,6 @@ exports.changePassword = function (req, res) {
         }
     }
     catch (err) {
-
         var ErrorInfo = {
             userName: 'Unknown User',
             action : 'changePassword',

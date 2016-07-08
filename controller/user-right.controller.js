@@ -3,9 +3,12 @@ var mysql = require('../config/db').pool;
 var async = require("async");
 var nodemailer = require('nodemailer');
 var userRightsManager = require( "../models/userRightsModel");
+var assignRightsManager = require( "../models/assignRightsModel");
 var config = require('../config')();
-var SitePath = config.site_path+":"+config.port;
-
+//var SitePath = config.site_path+":"+config.port;
+var SitePath = config.site_path;
+ var port = config.port;
+var url = SitePath+":"+port;
 var fs = require("fs");
 var wlogger= require('../config/logger');
 var reload = require('require-reload')(require);
@@ -13,7 +16,7 @@ var _ = require("underscore");
 var common = require("../helpers/common");
 
 /**
- * @desc create a log file if not exist.
+ * @desc Create a log file if not exist.
  * @param req
  * @param res
  * @param next
@@ -56,7 +59,8 @@ exports.getuserrights = function (req, res, next) {
                     }
                     async.parallel({
                         StoresList: function (callback) {
-                            userRightsManager.getStores( connection_ikon_cms, function( err, Stores  ) {
+                           // userRightsManager.getStores( connection_ikon_cms, function( err, Stores  ) {
+                            assignRightsManager.getStores( connection_ikon_cms, function( err, Stores  ) {
                                 if (err) {
                                     var errorInfo = {
                                         userName: req.session.icon_UserName,
@@ -98,8 +102,9 @@ exports.getuserrights = function (req, res, next) {
                             });
                         },
                         AssignVendors: function (callback) {
-                            userRightsManager.getAssignedVendors( connection_ikon_cms, function( err, AssignVendors  ) {
-                                console.log(AssignVendors)
+                            //userRightsManager.getAssignedVendors( connection_ikon_cms, function( err, AssignVendors  ) {
+                            assignRightsManager.getAssignedVendors( connection_ikon_cms, function( err, AssignVendors  ) {
+                                //console.log(AssignVendors)
                                 if (err) {
                                     var errorInfo = {
                                         userName: req.session.icon_UserName,
@@ -211,7 +216,7 @@ exports.getuserrights = function (req, res, next) {
 }
 
 /**
- * @desc
+ * @desc Get Existing User Role and Module mapping list
  * @param req
  * @param res
  * @param next
@@ -293,7 +298,12 @@ exports.existingMappingList = function (req, res, next) {
         res.status(500).json(err.message);
     }
 }
-
+/**
+ * @desc Add and Update User Role Module mapping
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.updateuserright = function (req, res, next) {
     try {
         if (req.session) {
@@ -429,6 +439,48 @@ exports.updateuserright = function (req, res, next) {
                                     })
                                 }
                             }
+                             var smtpTransport = nodemailer.createTransport({
+                                service: "Gmail",
+                                auth: {
+                                    user: "jetsynthesis@gmail.com",
+                                    pass: "j3tsynthes1s"
+                                }
+                            });
+                            var Message = "<table style=\"border-collapse:collapse\" width=\"510\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tbody><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr>";
+                            Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Admin Assigned User Rights to a User "+req.body.UserId +" at Jetsynthesys.";
+                            Message += " </td></tr>";
+                            Message += " <h5>User Rights Assigned.</h5>";
+                            Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
+                            Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\"  href="+SitePath+" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                            Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
+                            var mailOptions = {
+                                to: req.body.EmailId,
+                                subject: 'User Rights Assigned.',
+                                html: Message
+                            }
+                            smtpTransport.sendMail(mailOptions, function (error, response) {
+                                if (error) {
+
+                                    var errorInfo = {
+                                        userName: req.session.icon_UserName,
+                                        action : 'updateuserright',
+                                        responseCode:500,
+                                        message : ' failed to send Mail '+JSON.stringify(error.message)
+                                    };
+                                    wlogger.error(errorInfo);
+
+                                    console.log(error);
+                                    res.end("error");
+                                } else {
+                                    var info = {
+                                        userName: req.session.icon_UserName,
+                                        action: 'updateuserright',
+                                        responseCode: 200,
+                                        message: "User Rights Added/updated successfully and Mail sent successfully."
+                                    }
+                                    wlogger.info(info); // for information
+                                }
+                            })
                         }
                     ], function (err, results) {
                         if (err) {
@@ -447,7 +499,14 @@ exports.updateuserright = function (req, res, next) {
         res.status(500).json(err.message);
     }
 }
-
+/**
+ * @desc Insert or Update User Role Module mapping
+ * @param connection_ikon_cms
+ * @param req
+ * @param userRightMapping
+ * @param newMappingId
+ * @param callback
+ */
 function addUpdateUserRoleMapping(connection_ikon_cms, req, userRightMapping,newMappingId,callback){
     userRightsManager.isUserRoleExist(connection_ikon_cms, userRightMapping, function( err, mappingid ) {
         var existingUserRoleMappingId = (mappingid != null || mappingid != 0) ? (parseInt(mappingid)):0;
@@ -607,9 +666,6 @@ exports.addedituser = function (req, res, next) {
                                 res.status(500).json(err.message);
                             }
                             else {
-                                var site_path = config.site_path;
-                                var port = config.port;
-                                var url = site_path+":"+port;
                                 var Ld_id = userdata[0].id != null ? (parseInt(userdata[0].id) + 1) : 1;
                                 var datas = {
                                     ld_id: Ld_id,
@@ -699,7 +755,7 @@ exports.addedituser = function (req, res, next) {
                                                                     Message += " </td></tr><tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:15px;font-weight: bold;line-height:24px;text-align:left\">Your Password : " + "icon";
                                                                     Message += " </td></tr>";
                                                                     Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                                                    Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href="+url+"/accountlogin \" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Icon. If you have not made any request then you may ignore this email.";
+                                                                    Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href="+SitePath+" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Icon. If you have not made any request then you may ignore this email.";
                                                                     Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">If you have any concerns please contact us.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Icon Team</td></tr></tbody></table>";
                                                                     var mailOptions = {
                                                                         to: req.body.EmailId,
@@ -753,7 +809,7 @@ exports.addedituser = function (req, res, next) {
                                             Message += " </td></tr><tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:15px;font-weight: bold;line-height:24px;text-align:left\">Your Password : " + "icon";
                                             Message += " </td></tr>";
                                             Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                            Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href="+url+"/accountlogin \" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Icon. If you have not made any request then you may ignore this email.";
+                                            Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href="+SitePath+" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Icon. If you have not made any request then you may ignore this email.";
                                             Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">If you have any concerns please contact us.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Icon Team</td></tr></tbody></table>";
                                             var mailOptions = {
                                                 to: req.body.EmailId,

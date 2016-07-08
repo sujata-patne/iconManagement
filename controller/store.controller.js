@@ -3,16 +3,23 @@ var mysql = require('../config/db').pool;
 var nodemailer = require('nodemailer');
 var async = require("async");
 var storeManager = require("../models/storeModel");
+var assingRightsManager = require( "../models/assignRightsModel");
 var userManager = require("../models/userModel");
 var config = require('../config')();
-var SitePath = config.site_path+":"+config.port;
+//var SitePath = config.site_path+":"+config.port;
+var SitePath = config.site_path;
 
 var fs = require("fs");
 var wlogger= require('../config/logger');
 var reload = require('require-reload')(require);
 var common = require("../helpers/common");
 
-
+/**
+ * @desc create a log file if not exist.
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.allAction = function (req, res, next) {
     var currDate = common.Pad("0",parseInt(new Date().getDate()), 2)+'_'+common.Pad("0",parseInt(new Date().getMonth() + 1), 2)+'_'+new Date().getFullYear();
     if (wlogger.logDate == currDate) {
@@ -29,7 +36,12 @@ exports.allAction = function (req, res, next) {
         next();
     }
 }
-
+/**
+ * @desc Get All Store Details
+ * @param req
+ * @param res
+ * @param next
+ */
 exports.getstoredata = function (req, res, next) {
     try {
         if (req.session) {
@@ -207,7 +219,13 @@ exports.getstoredata = function (req, res, next) {
         res.status(500).json(err.message);
     }
 }
-
+/**
+ * @desc Add and update Store Details
+ * @param req
+ * @param res
+ * @param next
+ * @constructor
+ */
 exports.AddEditStore = function (req, res, next) {
     try {
         if (req.session) {
@@ -278,7 +296,7 @@ exports.AddEditStore = function (req, res, next) {
                                 }
                                 else {
                                     connection_ikon_cms.release();
-                                    res.send({ success: false, message: 'User Id Must be Unique' });
+                                    res.send({ success: false, message: 'User Email Id Must be Unique' });
                                 }
                             }
                             else {
@@ -382,11 +400,12 @@ exports.AddEditStore = function (req, res, next) {
                                         "st_modified_on" : new Date(),
                                         "st_modified_by" : req.session.icon_UserName
                                     }
-                                    storeManager.updateIcnStore( connection_ikon_cms, updateQuery, req.body.store_id, function( err, result ){
+                                    //storeManager.updateIcnStore( connection_ikon_cms, updateQuery, req.body.store_id, function( err, result ){
+                                    storeManager.updateIcnStoreURL( connection_ikon_cms, updateQuery, req.body.store_id, function( err, result ){
                                         if (err) {
                                             var errorInfo = {
                                                 userName: req.session.icon_UserName,
-                                                action : 'updateIcnStore',
+                                                action : 'updateIcnStoreURL',
                                                 responseCode:500,
                                                 message : ' failed to update Store-'+req.body.store_name +JSON.stringify(err.message)
                                             };
@@ -398,15 +417,15 @@ exports.AddEditStore = function (req, res, next) {
 
                                             var info = {
                                                 userName: req.session.icon_UserName,
-                                                action : 'updateIcnStore',
+                                                action : 'updateIcnStoreURL',
                                                 responseCode:200,
                                                 message : ' updated store-'+req.body.store_name +' successfully'
                                             };
                                             wlogger.info(info);
 
                                             updateIcnLoginDetailsQuery = {
-                                               // "ld_user_id" : req.body.store_email.split('@')[0],
-                                                "ld_user_name" : req.body.store_email,
+                                               // "ld_user_id" : req.body.store_email,
+                                                //"ld_user_name" : req.body.store_email.split('@')[0],
                                                 "ld_email_id" : req.body.store_email,
                                                 "ld_display_name" : req.body.store_contact_person,
                                                 "ld_mobile_no" : req.body.store_user_no,
@@ -442,7 +461,8 @@ exports.AddEditStore = function (req, res, next) {
                                                         loop(0);
                                                         function loop(cnt) {
                                                             var i = cnt;
-                                                            storeManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function( err, row ) {
+                                                            //storeManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function( err, row ) {
+                                                            assingRightsManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function( err, row ) {
                                                                 if (err) {
 
                                                                     var errorInfo = {
@@ -452,7 +472,6 @@ exports.AddEditStore = function (req, res, next) {
                                                                         message : ' failed get Last Inserted Multi Select MetaData Detail '+JSON.stringify(err.message)
                                                                     };
                                                                     wlogger.error(errorInfo);
-
 
                                                                     connection_ikon_cms.release(); ;
                                                                     res.status(500).json(err.message);
@@ -472,7 +491,8 @@ exports.AddEditStore = function (req, res, next) {
                                                                         cmd_entity_type: req.body.store_cmd_entity_type,
                                                                         cmd_entity_detail: req.body.AddStoreChannels[i]
                                                                     }
-                                                                    storeManager.createMultiSelectMetaDataDetail( connection_ikon_cms, metadata, function( err, result ){
+                                                                    //storeManager.createMultiSelectMetaDataDetail( connection_ikon_cms, metadata, function( err, result ){
+                                                                    assingRightsManager.createMultiSelectMetaDataDetail( connection_ikon_cms, metadata, function( err, result ){
                                                                         if (err) {
 
                                                                             var errorInfo = {
@@ -548,9 +568,9 @@ exports.AddEditStore = function (req, res, next) {
                                     var count = 0;
                                     deleteloop(count);
                                     function deleteloop(count) {
-                                        storeManager.deleteMultiSelectMetaDataDetail( connection_ikon_cms, req.body.store_front_type, req.body.DeleteStoreChannels[count], function( err, rew, fields ) {
+                                       //storeManager.deleteMultiSelectMetaDataDetail( connection_ikon_cms, req.body.store_front_type, req.body.DeleteStoreChannels[count], function( err, rew, fields ) {
+                                        assingRightsManager.deleteMultiSelectMetaDataDetail( connection_ikon_cms, req.body.store_front_type, req.body.DeleteStoreChannels[count], function( err, rew, fields ) {
                                             if (err) {
-
                                                 var errorInfo = {
                                                     userName: req.session.icon_UserName,
                                                     action : 'deleteMultiSelectMetaDataDetail',
@@ -559,7 +579,7 @@ exports.AddEditStore = function (req, res, next) {
                                                 };
                                                 wlogger.error(errorInfo);
 
-                                                connection_ikon_cms.release(); ;
+                                                connection_ikon_cms.release();
                                                 res.status(500).json(err.message);
                                             }
                                             else {
@@ -588,24 +608,23 @@ exports.AddEditStore = function (req, res, next) {
                                     var Groupid = 0;
                                     var storelength = req.body.AddStoreChannels.length;
                                     if (req.body.AddStoreChannels.length > 0) {
-                                        storeManager.getLastInsertedMultiSelectMetaDataDetailByCmdGroupId( connection_ikon_cms, function( err, result ) {
+                                        //storeManager.getLastInsertedMultiSelectMetaDataDetailByCmdGroupId( connection_ikon_cms, function( err, result ) {
+                                        assingRightsManager.getLastInsertedMultiSelectMetaDataGroupId( connection_ikon_cms, function( err, result ) {
                                             if (err) {
-
                                                 var errorInfo = {
                                                     userName: req.session.icon_UserName,
-                                                    action : 'getLastInsertedMultiSelectMetaDataDetailByCmdGroupId',
+                                                    action : 'getLastInsertedMultiSelectMetaDataGroupId',
                                                     responseCode:500,
                                                     message : ' failed to get Last Inserted Multi Select MetaData Detail By Cmd GroupId '+JSON.stringify(err.message)
                                                 };
                                                 wlogger.error(errorInfo);
-
                                                 connection_ikon_cms.release();
                                                 res.status(500).json(err.message);
                                             } else {
 
                                                 var info = {
                                                     userName: req.session.icon_UserName,
-                                                    action : 'getLastInsertedMultiSelectMetaDataDetailByCmdGroupId',
+                                                    action : 'getLastInsertedMultiSelectMetaDataGroupId',
                                                     responseCode:200,
                                                     message : ' get Last Inserted Multi Select MetaData Detail By Cmd GroupId successfully'
                                                 };
@@ -615,7 +634,8 @@ exports.AddEditStore = function (req, res, next) {
                                                 loop(0);
                                                 function loop(cnt) {
                                                     var i = cnt;
-                                                    storeManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function( err, row ) {
+                                                    //storeManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function( err, row ) {
+                                                    assingRightsManager.getLastInsertedMultiSelectMetaDataDetail( connection_ikon_cms, function( err, row ) {
                                                         if (err) {
 
                                                             var errorInfo = {
@@ -626,7 +646,7 @@ exports.AddEditStore = function (req, res, next) {
                                                             };
                                                             wlogger.error(errorInfo);
 
-                                                            connection_ikon_cms.release(); ;
+                                                            connection_ikon_cms.release();
                                                             res.status(500).json(err.message);
                                                         } else {
                                                             var info = {
@@ -643,7 +663,8 @@ exports.AddEditStore = function (req, res, next) {
                                                                 cmd_entity_type: req.body.store_cmd_entity_type,
                                                                 cmd_entity_detail: req.body.AddStoreChannels[i]
                                                             }
-                                                            storeManager.createMultiSelectMetaDataDetail( connection_ikon_cms, metadata, function( err, result ){
+                                                            //storeManager.createMultiSelectMetaDataDetail( connection_ikon_cms, metadata, function( err, result ){
+                                                            assingRightsManager.createMultiSelectMetaDataDetail( connection_ikon_cms, metadata, function( err, result ){
                                                                 if (err) {
 
                                                                     var errorInfo = {
@@ -761,8 +782,9 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                     ld_id: ld_id,
                                                                                                     ld_active: 1,
                                                                                                     ld_user_id: req.body.store_email.split('@')[0] + uniqueID,
+                                                                                                    ld_user_name: req.body.store_email.split('@')[0] + uniqueID,
                                                                                                     ld_user_pwd: 'icon',
-                                                                                                    ld_user_name: req.body.store_email,
+                                                                                                    account_validity: common.setAccountValidity(),
                                                                                                     ld_display_name: req.body.store_contact_person,
                                                                                                     ld_email_id: req.body.store_email,
                                                                                                     ld_mobile_no: req.body.store_user_no,
@@ -865,7 +887,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                                                                         Message += " <tr><td style=\"font-weight:bold;font-size:15px;color:#3d849b;\">Username : </td><td>" + req.body.store_email.split('@')[0] + uniqueID + "</td></tr>";
                                                                                                                         Message += " <tr><td style=\"font-weight:bold;font-size:15px;color:#3d849b;\">Temporary Password : </td><td>icon</td></tr>";
                                                                                                                         Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                                                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href='"+SitePath+"/' target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                                                                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\"  href="+SitePath+" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
                                                                                                                         Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
                                                                                                                         var mailOptions = {
                                                                                                                             to: req.body.store_email,
@@ -1122,7 +1144,7 @@ exports.AddEditStore = function (req, res, next) {
                                                                                         Message += " <tr><td style=\"border-collapse:collapse;color:#2d2a26;font-family:helvetica,arial,sans-serif;font-size:22px;font-weight: bold;line-height:24px;\">Store Admin created a new account at Jetsynthesys.";
                                                                                         Message += " </td></tr>";
                                                                                         Message += " <tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"15\">&nbsp;</td></tr> <tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">";
-                                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href='"+SitePath+"/' target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
+                                                                                        Message += "<a style=\"color:#3d849b;font-weight:bold;text-decoration:none\" href="+SitePath+" target=\"_blank\"><span style=\"color:#3d849b;text-decoration:none\">Click here to login</span></a> and start using Jetsynthesys. If you have not made any request then you may ignore this email";
                                                                                         Message += "  </td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Please contact us, if you have any concerns setting up Jetsynthesys.</td></tr><tr><td style=\"border-collapse:collapse;font-size:1px;line-height:1px\" width=\"100%\" height=\"25\">&nbsp;</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Thanks,</td></tr><tr><td style=\"border-collapse:collapse;color:#5c5551;font-family:helvetica,arial,sans-serif;font-size:15px;line-height:24px;text-align:left\">Jetsynthesys Team</td></tr></tbody></table>";
                                                                                         var mailOptions = {
                                                                                             to: req.body.store_email,

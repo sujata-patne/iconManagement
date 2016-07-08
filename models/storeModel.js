@@ -1,3 +1,8 @@
+/**
+ * @desc Get Channel Distribution Details for All Stores
+ * @param dbconnection
+ * @param callback
+ */
 exports.getStoreDetails = function( dbconnection, callback ) {
 	dbconnection.query(
 			'select * from catalogue_detail as cd inner join catalogue_master as cm on(cm.cm_id = cd.cd_cm_id) where cm_name in("Channel Distribution") ', 
@@ -6,6 +11,12 @@ exports.getStoreDetails = function( dbconnection, callback ) {
 			}
 	);
 }
+/**
+ * @desc Get Store Details with Associated Users Details
+ * @param dbconnection
+ * @param state
+ * @param callback
+ */
 exports.getAllStores = function( dbconnection, state, callback ) {
 	var storequery = state == "edit-store" ? "where st_id = " + state : "";
     var query = dbconnection.query('select * from (SELECT * FROM icn_store ' + storequery + ') st '+ 
@@ -16,6 +27,13 @@ exports.getAllStores = function( dbconnection, state, callback ) {
 	    	}
     );
 }
+/**
+ * @desc Get Channel Distribution Details for Given Store
+ * @param dbconnection
+ * @param state
+ * @param channelId
+ * @param callback
+ */
 exports.getChannelRights = function( dbconnection, state, channelId, callback ) {
 	if (state == "edit-store") {
         dbconnection.query('select * from (select * from icn_store where st_id= ? )st '+
@@ -31,7 +49,11 @@ exports.getChannelRights = function( dbconnection, state, channelId, callback ) 
         callback(null, []);
     }
 }
-
+/**
+ * @desc Get Master Channel Distribution List
+ * @param dbconnection
+ * @param callback
+ */
 exports.getDistributionChannelList = function( dbconnection, callback ) {
 	dbconnection.query('select * from catalogue_detail as cd ' +
 						'inner join catalogue_master as cm on(cm.cm_id = cd.cd_cm_id) where cm_name in("Channel Distribution") ',
@@ -40,7 +62,12 @@ exports.getDistributionChannelList = function( dbconnection, callback ) {
 		}
 	);
 }
-
+/**
+ * @desc Get Store with associated users details
+ * @param dbconnection
+ * @param data
+ * @param callback
+ */
 exports.getStoreList = function( dbconnection, data, callback ) {
  	var orderBy = '';
 	if(data.orderBy){
@@ -57,7 +84,12 @@ exports.getStoreList = function( dbconnection, data, callback ) {
 		}
 	);
 }
-
+/**
+ * Validate Store URL
+ * @param dbconnection
+ * @param storeSiteUrl
+ * @param callback
+ */
 exports.getStoreDetailsByStoreSiteUrl = function( dbconnection, storeSiteUrl, callback ) {
 	dbconnection.query('select * from icn_store where lower(st_url) = ?', [ storeSiteUrl ],
 		function ( err, storeDetails ) {
@@ -65,7 +97,12 @@ exports.getStoreDetailsByStoreSiteUrl = function( dbconnection, storeSiteUrl, ca
 		}
 	);
 }
-
+/**
+ * Get Store Details by it's name
+ * @param dbconnection
+ * @param storeName
+ * @param callback
+ */
 exports.getStoreByName = function( dbconnection, storeName, callback ) {
 	dbconnection.query('select * from icn_store where lower(st_name) = ?', [ storeName ],
 		function ( err, storeDetails ) {
@@ -73,8 +110,14 @@ exports.getStoreByName = function( dbconnection, storeName, callback ) {
 		}
 	);
 }
-
-exports.updateIcnStore = function( dbconnection, updateQuery, storeId, callback ) {
+/**
+ * @desc Update Store Details
+ * @param dbconnection
+ * @param updateQuery
+ * @param storeId
+ * @param callback
+ */
+exports.updateIcnStoreURL = function( dbconnection, updateQuery, storeId, callback ) {
 	dbconnection.query('UPDATE icn_store ' +
 							'SET st_name=?,' +
 							'st_url=?,' +
@@ -93,7 +136,13 @@ exports.updateIcnStore = function( dbconnection, updateQuery, storeId, callback 
 		}
 	);
 }
-
+/**
+ * @desc Update User Details
+ * @param dbConnection
+ * @param updateIcnLoginDetailsQuery
+ * @param storeUserId
+ * @param callback
+ */
 exports.updateIcnLoginDetails = function( dbConnection, updateIcnLoginDetailsQuery, storeUserId, callback ) {
 	dbConnection.query( 'UPDATE icn_login_detail ' +
 		                'SET ?' +
@@ -105,39 +154,11 @@ exports.updateIcnLoginDetails = function( dbConnection, updateIcnLoginDetailsQue
 	);
 }
 
-exports.getLastInsertedMultiSelectMetaDataDetail = function( dbConnection, callback ) {
-	dbConnection.query('select max(cmd_id) as id from multiselect_metadata_detail',
-		function ( err, multiSelectMetaDataRow ) {
-			callback( err, multiSelectMetaDataRow );
-		}
-	);
-}
-
-exports.createMultiSelectMetaDataDetail = function( dbConnection, multiSelectMetaData, callback ) {
-	dbConnection.query('INSERT INTO multiselect_metadata_detail SET ?', multiSelectMetaData,
-		function ( err, result ) {
-			callback( err, result );
-		}
-	);
-}
-
-exports.deleteMultiSelectMetaDataDetail = function( dbConnection, storeFrontType, channelId, callback ) {
-	dbConnection.query('DELETE FROM multiselect_metadata_detail WHERE cmd_group_id= ? and  cmd_entity_detail =?',
-		[ storeFrontType, channelId ],
-		function (err, row, fields) {
-			callback( err, row, fields );
-		}
-	);
-}
-
-exports.getLastInsertedMultiSelectMetaDataDetailByCmdGroupId = function( dbConnection, callback ) {
-	dbConnection.query('select max(cmd_group_id) as id from multiselect_metadata_detail',
-		function ( err, result) {
-			callback( err, result );
-		}
-	);
-}
-
+/**
+ * Get Last insertion Id of Store Table
+ * @param dbConnection
+ * @param callback
+ */
 exports.getLastInsertedStoreIdFromIcnStore = function( dbConnection, callback ) {
 	dbConnection.query('select max(st_id) as id from icn_store',
 		function ( err, result) {
@@ -145,11 +166,14 @@ exports.getLastInsertedStoreIdFromIcnStore = function( dbConnection, callback ) 
 		}
 	);
 }
-
+/**
+ * @desc Insert records into Store Table
+ * @param dbConnection
+ * @param storeData
+ * @param callback
+ */
 exports.createIcnStore = function( dbConnection, storeData, callback ) {
 	var util = require('util');
-	console.log(util.inspect(storeData, false, null));
-
 	dbConnection.query('INSERT INTO icn_store SET ?', storeData,
 		function ( err, result) {
 
@@ -157,7 +181,11 @@ exports.createIcnStore = function( dbConnection, storeData, callback ) {
 		}
 	);
 }
-
+/**
+ * @desc Get Last in wertion Id of User Table
+ * @param dbConnection
+ * @param callback
+ */
 exports.getLastInsertedIdFromIcnLoginDetail = function( dbConnection, callback ) {
 	dbConnection.query('select max(ld_id) as id from icn_login_detail',
 		function ( err, result) {
@@ -165,9 +193,12 @@ exports.getLastInsertedIdFromIcnLoginDetail = function( dbConnection, callback )
 		}
 	);
 }
-
-
-
+/**
+ * @desc Insert Records into User Table
+ * @param dbConnection
+ * @param icnLoginDetail
+ * @param callback
+ */
 exports.createIcnLoginDetail = function( dbConnection, icnLoginDetail, callback ) {
 	dbConnection.query('INSERT INTO icn_login_detail SET ?', icnLoginDetail,
 		function ( err, result) {
@@ -175,7 +206,12 @@ exports.createIcnLoginDetail = function( dbConnection, icnLoginDetail, callback 
 		}
 	);
 }
-
+/**
+ * Insert Record into Store User Table
+ * @param dbConnection
+ * @param icnStoreUser
+ * @param callback
+ */
 exports.createIcnStoreUser = function( dbConnection, icnStoreUser, callback ) {
 	dbConnection.query('INSERT INTO icn_store_user SET ?', icnStoreUser,
 		function ( err, result) {
@@ -183,7 +219,12 @@ exports.createIcnStoreUser = function( dbConnection, icnStoreUser, callback ) {
 		}
 	);
 }
-
+/**
+ * @desc Get Store and Store User Details by Store Id
+ * @param dbConnection
+ * @param storeId
+ * @param callback
+ */
 exports.getStoreListByStoreId = function( dbConnection, storeId, callback ) {
 	dbConnection.query('select * from (SELECT * FROM icn_store where st_id = ?)st ' +
 							'inner join (select * from icn_store_user)su on(su.su_st_id  = st.st_id) ' +
